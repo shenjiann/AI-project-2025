@@ -1,5 +1,7 @@
 # Project of AI Course
 
+course link: [https://econlab.xmu.edu.cn/datascience/AI_and_ML/index.html]
+
 要求：
 
 1. 总共4个章节，全连接神经网络、模型分析、卷积神经网络、序列模型，每个章节寻找经济数据进行分析，fcnn和模型分析使用同一个主题；
@@ -42,6 +44,16 @@
 4. smote上采样0.2 lr=1e-3 epoch=500: auprc = 0.275, Precision: 0.3694 | Recall: 0.3892
 
 ## 模型分析
+
+包括的主题：
+
+1. variance-bias
+2. regularization
+   1. l2
+   2. dropout
+   3. early stop
+3. batch normalization
+
 
 ## 卷积神经网络
 
