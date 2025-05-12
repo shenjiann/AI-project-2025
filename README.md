@@ -49,10 +49,10 @@ course link: [https://econlab.xmu.edu.cn/datascience/AI_and_ML/index.html]
 
 1. variance-bias
 2. regularization
-   1. l2
-   2. dropout
-   3. early stop
-3. batch normalization
+   1. l2: 基本实现，封装好的调节lambda的函数，lambda变化时train valid test loss的变化，
+   2. dropout：基本实现，封装好的调节各层p的函数
+   3. early stop：EarlyStop类的实现参考[https://github.com/Bjarten/early-stopping-pytorch]，MNIST示例[https://github.com/Bjarten/early-stopping-pytorch/blob/main/MNIST_Early_Stopping_example.ipynb]
+3. batch normalization：基本实现，bn中各层的momentum有一些参数可能调
 
 
 ## 卷积神经网络
