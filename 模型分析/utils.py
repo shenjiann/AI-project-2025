@@ -51,18 +51,19 @@ def test(model, test_loader, criterion):
         test_loader: DataLoader, test dataset;
         criterion: loss function;
     return:
+        test_loss: float, loss on the test data
         pred_probs: tensor, predicted test probabilities;
     """
     model.eval() # set the model to evaluation mode
-    test_loss = 0.0
+    acc_loss = 0
     pred_probs = [] # a list used to accumulated each batch's predicted probabilities
-    with torch.no_grad():
+    with torch.no_grad(): # not calculate gradient
         for data, target in test_loader:
-            output = model(data).squeeze(1) # forward propagation using test data and return output probabilities
-            test_loss += criterion(output, target).item() # accumulate loss
-            pred_probs.append(output) # accumulate predicted probabilityes
-            
-    test_loss /= len(test_loader.dataset)
-    print(f"Test Loss: {test_loss:.4f}")
+            output = model(data) # forward propagation using test data and return output probabilities
+            loss = criterion(output.squeeze(1), target).item() # accumulate loss
+            acc_loss += loss * data.size(0)
+            pred_probs.append(output) # append predicted probabilityes
+
+    test_loss = acc_loss / len(test_loader.dataset)
     
-    return torch.cat(pred_probs)
+    return test_loss, torch.cat(pred_probs)
