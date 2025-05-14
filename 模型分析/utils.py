@@ -19,6 +19,7 @@ class FNN(nn.Module):
         x = torch.sigmoid(self.fc4(x)) # sigmoid activation
         return x
 
+
 def train(model, train_loader, criterion, optimizer, num_epochs):
     """
     functions used to train the model
@@ -33,15 +34,17 @@ def train(model, train_loader, criterion, optimizer, num_epochs):
     """
     model.train() # set the model to training mode
     for epoch in range(num_epochs): # loop over epochs
+        acc_loss = 0
         for batch_idx, (data, target) in enumerate(train_loader): # loop over batches
             optimizer.zero_grad() # clear previous gradients
             output = model(data) # do forward propagation
             loss = criterion(output.squeeze(1), target) # calculate loss
             loss.backward() # do backpropagation
             optimizer.step() # update parameters
-
-            if (epoch + 1) % 50 == 0 and batch_idx == len(train_loader)-2: # print second last batch's loss every 50 epochs
-                print(f"Epoch [{epoch+1}/{num_epochs}] Batch {batch_idx+1} Loss: {loss.item():.4f}")
+            acc_loss += loss.item() * data.size(0)
+        train_loss = acc_loss / len(train_loader.dataset)
+        if (epoch + 1) % 50 == 0: # print loss every 50 epochs
+            print(f"Epoch [{epoch+1}/{num_epochs}] Loss: {train_loss:.4f}")
 
 def test(model, test_loader, criterion):
     """
@@ -65,5 +68,4 @@ def test(model, test_loader, criterion):
             pred_probs.append(output) # append predicted probabilityes
 
     test_loss = acc_loss / len(test_loader.dataset)
-    
     return test_loss, torch.cat(pred_probs)
