@@ -54,6 +54,11 @@ course link: [https://econlab.xmu.edu.cn/datascience/AI_and_ML/index.html]
    3. early stop：EarlyStop类的实现参考[https://github.com/Bjarten/early-stopping-pytorch]，MNIST示例[https://github.com/Bjarten/early-stopping-pytorch/blob/main/MNIST_Early_Stopping_example.ipynb]
 3. batch normalization：基本实现，bn中各层的momentum有一些参数可能调
 
+调参结论：
+1. [64, 32, 16]的结构比[32, 8]的要好
+2. batchnorm 普遍都好
+3. early stop false比patience=50好
+
 
 ## 卷积神经网络
 

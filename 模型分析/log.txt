@@ -1,5 +1,3 @@
-early stop  monitor validation loss
-
 {"batch_size": 128, "hidden_layers": [64, 32, 16], "dropout_rates": [0.5, 0.3, 0.1], "batch_norm": true, "criterion": "BCE", "optimizer": "Adam", "lr": 0.001, "weight_decay": 0, "num_epochs": 100, "early_stop": true, "valid_loss": 0.17042449369376414, "valid_auprc": 0.16659028090653893}
 {"batch_size": 128, "hidden_layers": [64, 32, 16], "dropout_rates": [0.5, 0.3, 0.1], "batch_norm": true, "criterion": "BCE", "optimizer": "Adam", "lr": 0.001, "weight_decay": 0, "num_epochs": 100, "early_stop": false, "valid_loss": 0.16742553156755968, "valid_auprc": 0.1749389747078478}
 {"batch_size": 128, "hidden_layers": [64, 32, 16], "dropout_rates": [0.5, 0.3, 0.1], "batch_norm": true, "criterion": "BCE", "optimizer": "Adam", "lr": 0.001, "weight_decay": 0, "num_epochs": 300, "early_stop": true, "valid_loss": 0.17090003062918407, "valid_auprc": 0.15449637958400408}
