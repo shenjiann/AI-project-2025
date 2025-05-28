@@ -45,7 +45,7 @@ course link: [https://econlab.xmu.edu.cn/datascience/AI_and_ML/index.html]
 
 ## 模型分析
 
-包括的主题：
+包含内容：
 
 1. variance-bias
 2. regularization
@@ -62,11 +62,28 @@ course link: [https://econlab.xmu.edu.cn/datascience/AI_and_ML/index.html]
 
 ## 卷积神经网络
 
-参考主题： 夜间灯光对gdp，有没有灯光数据
+可选择的主题：
+
+- 夜间灯光
+  - [Combining satellite imagery and machine learning to predict poverty(Jean et al. 2016 Science)](https://www.science.org/doi/10.1126/science.aaf7894) 数据不好找
+
+- [Measuring investor sentiment by photos from news](https://www.kuntara.net/uploads/1/1/4/9/114945401/1-s2.0-s0304405x21002683-main-3.pdf) 关于中国的数据不好找
+
+- 时间序列转为图像
+  - [基于CNN-DAE-SeqConvLSTM混合模型和多种时序成像算法的标普500指数波动率预测研究](https://kns.cnki.net/kcms2/article/abstract?v=N2LrlypoGYVdV8yHa2x7fL-mShOO2shXiF-MNSUemyzp6-B-0AmOAu31yhgVWnZom5gMg2lEHrULcDAl8CoskNsYy60iVotU_QLlRGe0ddfxKgttg0iauSv2Ok0uZcNO7usppg1aUFMsZPeZd39tgWtlfh6BgmCRLjo4fWbSf1g9A90n3u519w==&uniplatform=NZKPT&language=CHS)
+  - [基于时序图像编码与遗传优化卷积神经网络的金融市场价格波动趋势预测](https://kns.cnki.net/kcms2/article/abstract?v=N2LrlypoGYX4jo1iHbFGa8E1cAc_FMLXBGud4gyszzHKLQlKsiLCIUOA81ELWPVUu2dhXBn4l90P5SPt3mid40_rg6vBneksIDTY11_BBAafDGXgBHCZGEW7sjUGBHJ0oc-4tzi30lLbXTLrx2aiJjOR5ViEN7yu27CHz5weZ8QKhnGv4Nx0HQ==&uniplatform=NZKPT&language=CHS)
+
+Imaging Time Series ([Wang and Oates, 2015](https://www.ijcai.org/Proceedings/15/Papers/553.pdf))
+
+
 
 ## 序列模型：
 
-参考主题：
+可选择的主题：
 WinGo财经文本数据平台“文构财经文本数据平台”是中国首家基于上市公司披露文本的人工智能财经数据平台。平台从学术研究和业界量化投资需求出发，聚焦于海量财经文本数据，应用自然语言处理、深度学习和人工智能技术对财经文本进行深度加工，为用户提供财经文本的词频、相似词、文本特征等全新深度处理的数据，从而为学术研究、投资决策应用等提供多方位支持。试用时间：即日起至2025年9月30日 [https://mp.weixin.qq.com/s/M9LJxi4EAJlpi9FprHKIqQ]
 
 主题：上市公司主营业务所属行业分类，锐思数据
+
+
+
+- [基于深度学习LSTM神经网络的全球股票指数预测研究](https://kns.cnki.net/kcms2/article/abstract?v=5hcLxvuG7Q5OWRmK6U9MFM5rRL8qMnF1hPebICtpYNHzag5DYiSv1E519_kuigfe734qfg2kZVSKPDW0ATGMRY0y9XnRswva8g606qc7p1LReo-V4OTplv0Svep138wQso-L3sKTGTCcXymDvCgEFMfd_0b_TtOdfHlTxLvH9roKGGiwvnmCcw==&uniplatform=NZKPT&language=CHS)
