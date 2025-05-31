@@ -75,7 +75,7 @@ course link: [https://econlab.xmu.edu.cn/datascience/AI_and_ML/index.html]
 
 Imaging Time Series ([Wang and Oates, 2015](https://www.ijcai.org/Proceedings/15/Papers/553.pdf))
 
-
+Data: 201101 - 202405的城市商品住宅价格指数（201101=100），length=
 
 ## 序列模型：
 
