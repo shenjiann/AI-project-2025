@@ -79,11 +79,18 @@ Data: 201101 - 202405的城市商品住宅价格指数（201101=100），length=
 
 ## 序列模型：
 
-可选择的主题：
-WinGo财经文本数据平台“文构财经文本数据平台”是中国首家基于上市公司披露文本的人工智能财经数据平台。平台从学术研究和业界量化投资需求出发，聚焦于海量财经文本数据，应用自然语言处理、深度学习和人工智能技术对财经文本进行深度加工，为用户提供财经文本的词频、相似词、文本特征等全新深度处理的数据，从而为学术研究、投资决策应用等提供多方位支持。试用时间：即日起至2025年9月30日 [https://mp.weixin.qq.com/s/M9LJxi4EAJlpi9FprHKIqQ]
+- 市场情绪分类及预测：
 
-主题：上市公司主营业务所属行业分类，锐思数据
+1. 基于新闻数据(THUCnews)用预训练的FinBert计算得到情感得分，
+ THUCnews没有时间戳，但是有标题
+2. 得到情感得分的时间序列
+3. 然后和其他信息一起输入LSTM，比较有情感和没有情感下的预测表现。
+参考
+(https://zhuanlan.zhihu.com/p/718500113)
+(https://github.com/EagleAdelaide/FinSen_Dataset/blob/main/README.md)
 
 
 
-- [基于深度学习LSTM神经网络的全球股票指数预测研究](https://kns.cnki.net/kcms2/article/abstract?v=5hcLxvuG7Q5OWRmK6U9MFM5rRL8qMnF1hPebICtpYNHzag5DYiSv1E519_kuigfe734qfg2kZVSKPDW0ATGMRY0y9XnRswva8g606qc7p1LReo-V4OTplv0Svep138wQso-L3sKTGTCcXymDvCgEFMfd_0b_TtOdfHlTxLvH9roKGGiwvnmCcw==&uniplatform=NZKPT&language=CHS)
+
+
+
