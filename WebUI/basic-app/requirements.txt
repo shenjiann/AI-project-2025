@@ -1,0 +1,4 @@
+shiny
+PIL
+numpy
+tempfile
