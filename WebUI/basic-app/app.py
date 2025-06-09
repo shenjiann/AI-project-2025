@@ -24,14 +24,6 @@ def image():
     img = {'src': tmp.name, 'width': '100px'}
     return img
 
-@render.text
-def image_matrix():
-    arr = img_array()
-    # 格式化输出矩阵，每个像素值占4个字符宽度
-    formatted_rows = [" ".join(f"{val:3}" for val in row) for row in arr]
-    return "\n".join(formatted_rows)
-
-
 ui.input_select(
     'conv_kernel_select',
     'select a convolution kernel',
