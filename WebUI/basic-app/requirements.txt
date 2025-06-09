@@ -1,4 +1,3 @@
 shiny
-PIL
+Pillow
 numpy
-tempfile
