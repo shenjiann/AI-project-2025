@@ -15,8 +15,8 @@ kernel_chioces = {
     'laplacian': 'Laplacian'
 }
 
-with ui.sidebar(bg='#f8f8f8'):
-    ui.input_file('f', 'select a file')
+with ui.sidebar(bg="#ecd8d842"):
+    ui.input_file('f', 'select an image file')
     ui.input_select(
         'kernel',
         'select a convolution kernel',
