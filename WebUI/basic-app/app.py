@@ -16,7 +16,7 @@ kernel_chioces = {
 }
 
 with ui.sidebar(bg="#ecd8d842"):
-    ui.input_file('f', 'select an image file')
+    ui.input_file('f', 'select an image file', accept='image/*')
     ui.input_select(
         'kernel',
         'select a convolution kernel',
