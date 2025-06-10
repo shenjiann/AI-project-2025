@@ -7,10 +7,12 @@ import torch
 import torch.nn.functional as F
 
 kernel_chioces = {
+    'Smooth': 'Smooth',
     'Gaussian': 'Gaussian',
     'Sharpen': 'Sharpen',
     'vertical edge': 'vertical edge',
     'horizontal edge': 'horizontal edge',
+    'laplacian': 'Laplacian'
 }
 
 with ui.sidebar(bg='#f8f8f8'):
@@ -42,7 +44,10 @@ def generate_kernel():
     kernel_type = input.kernel()
     size = input.size()
 
-    if kernel_type == 'Gaussian':
+    if kernel_type == 'Smooth':
+        return np.ones((size, size)) / (size * size)
+
+    elif kernel_type == 'Gaussian':
         def gaussian_2d(x, y, sigma=1.0):
             return np.exp(-(x**2 + y**2) / (2 * sigma**2))
 
@@ -68,6 +73,11 @@ def generate_kernel():
         kernel[size // 2, :] = np.linspace(-1, 1, size)
         return kernel
 
+    elif kernel_type == 'laplacian':
+        kernel = np.ones((size, size)) * -1
+        kernel[size//2, size//2] = size*size - 1
+        return kernel
+
     else:
         return np.eye(size)  # fallback
 
@@ -89,6 +99,9 @@ def convolve_img():
     return output_array
 
 
+@render.text
+def text1():
+    return f'Before Convolution'
 
 @render.image
 def image():
@@ -97,6 +110,10 @@ def image():
     img.save(tmp.name)
     img = {'src': tmp.name, 'width': '300px'}
     return img
+
+@render.text
+def text2():
+    return f'After Convolution'
 
 @render.image
 def convolved_image():
