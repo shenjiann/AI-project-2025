@@ -70,6 +70,9 @@ def convolve(input:np.ndarray, kernel:np.ndarray, stride:int, padding:int) -> np
 
 
 def mat_to_latex(matrix: np.ndarray, wrap: bool = True) -> str:
+    """
+    2D矩阵转换为latex表达式
+    """
     rows = [" & ".join(map(str, row)) for row in matrix]
     latex = r"\begin{bmatrix}" + r" \\".join(rows) + r"\end{bmatrix}"
     return f"$$ {latex} $$" if wrap else latex

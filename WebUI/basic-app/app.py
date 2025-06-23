@@ -4,6 +4,13 @@ from pathlib import Path
 from utility import kernel_choices, generate_kernel, mat_to_latex, generate_input, convolve
 
 app_ui = ui.page_fluid(
+    # 对ID为 threedep 的图片输出容器调整CSS，缩小下方外边距
+    ui.tags.style("""
+        #threedep {
+            margin-bottom: -300px !important;
+        }
+    """),
+
     # 图片和标题
     ui.output_image("threedep"),
     ui.panel_title("二维卷积计算"),
@@ -13,7 +20,7 @@ app_ui = ui.page_fluid(
     # 卷积设定
     ui.input_slider('size', r'\(f\)', 1, 5, 2),
     ui.input_slider("stride", r"\(s\)", 1, 5, 1),
-    ui.input_slider('padding', r'\(p\)', 0, 5, 1),
+    ui.input_slider('padding', r'\(p\)', 0, 5, 0),
     ui.input_select('kernel','选择卷积核类型', kernel_choices),
     ui.input_numeric("seed", "随机种子", 42),
     # 输出
@@ -62,21 +69,21 @@ def server(input, output, session):
         input_tex = mat_to_latex(input_array(), wrap=False)
         kernel_tex = mat_to_latex(kernel_array(), wrap=False)
         output_tex = mat_to_latex(output_array(), wrap=False)
-
-        # 获取参数值
         padding_val = input.padding()
         stride_val = input.stride()
 
-        # 在输入矩阵下方加 padding，输出矩阵下方加 stride
+        # 上下标说明
         input_with_note = rf"\underset{{\text{{padding}} = {padding_val}}}{{{input_tex}}}"
         output_with_note = rf"\underset{{\text{{stride}} = {stride_val}}}{{{output_tex}}}"
 
-        # 组合公式
-        full_expr = r"$$" + input_with_note + r"\xrightarrow{" + kernel_tex + r"}" + output_with_note + r"$$"
+        # 完整 LaTeX 表达式
+        full_expr = r"\[" + input_with_note + r"\xrightarrow{" + kernel_tex + r"}" + output_with_note + r"\]"
 
         return ui.HTML(f"""
-        <div id="mathjax-container">{full_expr}</div>
+        <div id="mathjax-container" style="text-align: left;">{full_expr}</div>
         <script>MathJax.typesetPromise();</script>
         """)
     
 app = App(app_ui, server)
+
+
