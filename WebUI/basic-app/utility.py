@@ -18,58 +18,102 @@ def generate_input(height:int, width:int, seed:int=42) -> np.ndarray:
 import numpy as np
 from math import comb # 需要导入 comb 来生成更高级的平滑核
 
-def generate_kernel(kernel:str, size:int, seed:int=42) -> np.ndarray:
+# def generate_kernel(kernel:str, size:int, seed:int=42) -> np.ndarray:
+#     """
+#     生成卷积核 (修正了Sobel核的实现)
+#     """
+#     np.random.seed(seed)
+
+#     # 确保尺寸为奇数，便于中心对称
+#     if size % 2 == 0:
+#         size += 1
+
+#     if kernel == 'Random':
+#         return np.random.randint(-5, 5, size=(size, size))
+#     elif kernel == 'Smooth':
+#         return np.ones((size, size)) / (size * size)
+#     elif kernel == 'Gaussian':
+#         # 高斯核的实现保持不变
+#         sigma = max(1.0, size / 5.0) # 让sigma随尺寸变化
+#         ax = np.linspace(-(size - 1) / 2., (size - 1) / 2., size)
+#         xx, yy = np.meshgrid(ax, ax)
+#         kernel = np.exp(-(xx**2 + yy**2) / (2 * sigma**2))
+#         return kernel / np.sum(kernel)
+#     elif kernel == 'Sharpen':
+#         # 锐化核的实现保持不变
+#         center = size // 2
+#         kernel = -np.ones((size, size)) / (size * size)
+#         kernel[center, center] = 2.0 - 1.0 / (size*size)
+#         return kernel
+
+#     # --- Sobel 核的修正部分 ---
+#     elif kernel == 'SobelVert' or kernel == 'SobelHori':
+#         # 对于 size=3，使用经典的Sobel向量 [1, 2, 1]
+#         # 对于其他尺寸，使用更通用的平滑向量（如二项式系数或简单的ones）
+#         if size == 3:
+#             smooth_vec = np.array([1, 2, 1])
+#             deriv_vec = np.array([-1, 0, 1])
+#         else:
+#             # 使用二项式系数作为更通用的平滑核（类似高斯）
+#             smooth_vec = np.array([comb(size - 1, i) for i in range(size)])
+#             # 使用简单的中心差分作为导数核
+#             deriv_vec = np.zeros(size)
+#             deriv_vec[0] = -1
+#             deriv_vec[-1] = 1
+
+#         if kernel == 'SobelVert':
+#             # 垂直梯度 (用于检测水平边缘)
+#             # 通过 垂直的微分向量 和 水平的平滑向量 的外积得到
+#             return np.outer(deriv_vec, smooth_vec)
+#         else: # SobelHori
+#             # 水平梯度 (用于检测垂直边缘)
+#             # 通过 垂直的平滑向量 和 水平的微分向量 的外积得到
+#             return np.outer(smooth_vec, deriv_vec)
+
+def generate_kernel(kernel: str, size: int, seed: int = 42) -> np.ndarray:
     """
-    生成卷积核 (修正了Sobel核的实现)
+    生成任意尺寸的卷积核（包括偶数尺寸），支持多种类型：
+    - Random
+    - Smooth
+    - Gaussian
+    - Sharpen
+    - SobelVert
+    - SobelHori
     """
     np.random.seed(seed)
 
-    # 确保尺寸为奇数，便于中心对称
-    if size % 2 == 0:
-        size += 1
-
     if kernel == 'Random':
         return np.random.randint(-5, 5, size=(size, size))
+
     elif kernel == 'Smooth':
         return np.ones((size, size)) / (size * size)
+
     elif kernel == 'Gaussian':
-        # 高斯核的实现保持不变
-        sigma = max(1.0, size / 5.0) # 让sigma随尺寸变化
+        sigma = max(1.0, size / 5.0)
         ax = np.linspace(-(size - 1) / 2., (size - 1) / 2., size)
         xx, yy = np.meshgrid(ax, ax)
         kernel = np.exp(-(xx**2 + yy**2) / (2 * sigma**2))
         return kernel / np.sum(kernel)
+
     elif kernel == 'Sharpen':
-        # 锐化核的实现保持不变
-        center = size // 2
         kernel = -np.ones((size, size)) / (size * size)
-        kernel[center, center] = 2.0 - 1.0 / (size*size)
+        center = (size - 1) // 2 if size % 2 == 1 else (size // 2 - 1)
+        kernel[center, center] = 2.0 - 1.0 / (size * size)
         return kernel
 
-    # --- Sobel 核的修正部分 ---
     elif kernel == 'SobelVert' or kernel == 'SobelHori':
-        # 对于 size=3，使用经典的Sobel向量 [1, 2, 1]
-        # 对于其他尺寸，使用更通用的平滑向量（如二项式系数或简单的ones）
-        if size == 3:
-            smooth_vec = np.array([1, 2, 1])
-            deriv_vec = np.array([-1, 0, 1])
-        else:
-            # 使用二项式系数作为更通用的平滑核（类似高斯）
-            smooth_vec = np.array([comb(size - 1, i) for i in range(size)])
-            # 使用简单的中心差分作为导数核
-            deriv_vec = np.zeros(size)
-            deriv_vec[0] = -1
-            deriv_vec[-1] = 1
+        # 平滑向量：采用二项式系数（近似高斯）
+        smooth_vec = np.array([comb(size - 1, i) for i in range(size)])
+        
+        # 导数向量（中心差分）
+        deriv_vec = np.zeros(size)
+        deriv_vec[0] = -1
+        deriv_vec[-1] = 1
 
-        if kernel == 'SobelVert':
-            # 垂直梯度 (用于检测水平边缘)
-            # 通过 垂直的微分向量 和 水平的平滑向量 的外积得到
+        if kernel == 'SobelHori':
             return np.outer(deriv_vec, smooth_vec)
-        else: # SobelHori
-            # 水平梯度 (用于检测垂直边缘)
-            # 通过 垂直的平滑向量 和 水平的微分向量 的外积得到
+        else:  # SobelHori
             return np.outer(smooth_vec, deriv_vec)
-
 
 def convolve(input:np.ndarray, kernel:np.ndarray, stride:int, padding:int) -> np.ndarray:
     """

@@ -27,6 +27,7 @@ app_ui = ui.page_fluid(
             width=1
         ),
         ui.card(
+            ui.h5('结果'),
             ui.output_ui('input2output_latex'),
             width=4
         )
@@ -89,10 +90,6 @@ def server(input, output, session):
         <div id="mathjax-container" style="text-align: left;">{full_expr}</div>
         <script>MathJax.typesetPromise();</script>
         """)
-
-
-    
-
     
 app = App(app_ui, server)
 
