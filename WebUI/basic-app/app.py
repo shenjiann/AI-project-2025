@@ -1,40 +1,82 @@
-from shiny import App, render, ui
+from shiny import App, render, ui, reactive
 import numpy as np
+from pathlib import Path
+from utility import kernel_choices, generate_kernel, mat_to_latex, generate_input, convolve
 
 app_ui = ui.page_fluid(
-    ui.panel_title("Hello Shiny!"),
-    ui.input_slider("n", "N", 0, 100, 20),
-    ui.output_text_verbatim("txt"),
-    ui.output_ui("matrix_latex"),
+    # 图片和标题
+    ui.output_image("threedep"),
+    ui.panel_title("二维卷积计算"),
+    # 输入矩阵设定
+    ui.input_slider('height', r'\( d_H \)', 1, 10, 4),
+    ui.input_slider('width', r'\(d_W\)', 1, 10, 4),
+    # 卷积设定
+    ui.input_slider('size', r'\(f\)', 1, 5, 2),
+    ui.input_slider("stride", r"\(s\)", 1, 5, 1),
+    ui.input_slider('padding', r'\(p\)', 0, 5, 1),
+    ui.input_select('kernel','选择卷积核类型', kernel_choices),
+    ui.input_numeric("seed", "随机种子", 42),
+    # 输出
+    ui.output_ui('input2output_latex'),
     
+    # 加载 MathJax
     ui.HTML("""
     <script type="text/javascript"
-        id="MathJax-script"
-        async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    id="MathJax-script"
+    async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script>
+    Shiny.addCustomMessageHandler('refresh-mathjax', function(_) {
+        if (window.MathJax) {
+        MathJax.typesetPromise();
+        }
+    });
     </script>
     """)
 )
 
 def server(input, output, session):
-    @render.text
-    def txt():
-        return f"n*2 is {input.n() * 2}"
+    @render.image  
+    def threedep():
+        here = Path(__file__).parent
+        return {
+            "src": here/"figs/threedep.png",
+            "style": "width: 100%; max-height: 60px; display: block; margin: 0; padding: 0;"
+        }
+    
+    @reactive.calc
+    def input_array():
+        return generate_input(height=input.height(), width=input.width(), seed=input.seed())
 
+    @reactive.calc
+    def kernel_array():
+        return generate_kernel(input.kernel(), input.size(), seed=input.seed())
+
+    @reactive.calc
+    def output_array():
+        return convolve(input=input_array(), kernel=kernel_array(), stride=input.stride(), padding=input.padding())
+    
     @render.ui
-    def matrix_latex():
-        A = np.array([[1, 2], [3, 4]])
-        latex_matrix = r"\begin{bmatrix}" + \
-                    r" \\\ ".join([" & ".join(map(str, row)) for row in A]) + \
-                    r"\end{bmatrix}"
-        latex_full = f"$$ {latex_matrix} $$"
+    def input2output_latex():
+        input_tex = mat_to_latex(input_array(), wrap=False)
+        kernel_tex = mat_to_latex(kernel_array(), wrap=False)
+        output_tex = mat_to_latex(output_array(), wrap=False)
 
-        # 包装 MathJax + typeset 触发脚本
+        # 获取参数值
+        padding_val = input.padding()
+        stride_val = input.stride()
+
+        # 在输入矩阵下方加 padding，输出矩阵下方加 stride
+        input_with_note = rf"\underset{{\text{{padding}} = {padding_val}}}{{{input_tex}}}"
+        output_with_note = rf"\underset{{\text{{stride}} = {stride_val}}}{{{output_tex}}}"
+
+        # 组合公式
+        full_expr = r"$$" + input_with_note + r"\xrightarrow{" + kernel_tex + r"}" + output_with_note + r"$$"
+
         return ui.HTML(f"""
-        <div id="mathjax-container">{latex_full}</div>
-        <script>
-            MathJax.typesetPromise();
-        </script>
+        <div id="mathjax-container">{full_expr}</div>
+        <script>MathJax.typesetPromise();</script>
         """)
-
+    
 app = App(app_ui, server)
