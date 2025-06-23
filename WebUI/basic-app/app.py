@@ -14,17 +14,23 @@ app_ui = ui.page_fluid(
     # 图片和标题
     ui.output_image("threedep"),
     ui.panel_title("二维卷积计算"),
-    # 输入矩阵设定
-    ui.input_slider('height', r'\( d_H \)', 1, 10, 5),
-    ui.input_slider('width', r'\(d_W\)', 1, 10, 5),
-    # 卷积设定
-    ui.input_slider('size', r'\(f\)', 1, 7, 3, step=2),
-    ui.input_slider("stride", r"\(s\)", 1, 5, 1),
-    ui.input_slider('padding', r'\(p\)', 0, 5, 0),
-    ui.input_select('kernel','选择卷积核类型', kernel_choices),
-    ui.input_numeric("seed", "随机种子", 42),
-    # 输出
-    ui.output_ui('input2output_latex'),
+    ui.layout_columns(
+        ui.card(
+            ui.h5('参数设定'),
+            ui.input_slider('height', r'\( d_H \)', 1, 10, 5),
+            ui.input_slider('width', r'\(d_W\)', 1, 10, 5),
+            ui.input_slider('size', r'\(f\)', 1, 7, 3, step=2),
+            ui.input_slider("stride", r"\(s\)", 1, 5, 1),
+            ui.input_slider('padding', r'\(p\)', 0, 5, 0),
+            ui.input_select('kernel','选择卷积核类型', kernel_choices),
+            ui.input_numeric("seed", "随机种子", 42),
+            width=1
+        ),
+        ui.card(
+            ui.output_ui('input2output_latex'),
+            width=4
+        )
+    ),
     
     # 加载 MathJax
     ui.HTML("""
@@ -83,6 +89,10 @@ def server(input, output, session):
         <div id="mathjax-container" style="text-align: left;">{full_expr}</div>
         <script>MathJax.typesetPromise();</script>
         """)
+
+
+    
+
     
 app = App(app_ui, server)
 
