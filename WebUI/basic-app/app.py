@@ -5,27 +5,78 @@ import numpy as np
 import tempfile
 import torch
 import torch.nn.functional as F
+from pathlib import Path
+
+ui.HTML("""
+<script type="text/javascript"
+  id="MathJax-script"
+  async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+""")
 
 kernel_chioces = {
-    'Smooth': 'Smooth',
-    'Gaussian': 'Gaussian',
-    'Sharpen': 'Sharpen',
-    'vertical edge': 'vertical edge',
-    'horizontal edge': 'horizontal edge',
-    'laplacian': 'Laplacian'
+    'Smooth': '平均核',
+    'Gaussian': '高斯核',
+    'Sharpen': '锐化核',
+    'vertical edge': 'Sobel核(垂直边界)',
+    'horizontal edge': 'Sobel核(水平边界)'
 }
 
-with ui.sidebar(bg="#ecd8d842"):
-    ui.input_file('f', 'select an image file', accept='image/*')
-    ui.input_select(
-        'kernel',
-        'select a convolution kernel',
-        kernel_chioces
-        )
-    ui.input_slider('size', 'size', 1, 10, 1)
-    ui.input_slider('padding', 'padding', 0, 10, 0)
-    ui.input_slider('stride', 'stride', 1, 10, 1)
+@render.image  
+def threedep():
+    here = Path(__file__).parent
+    return {"src": here / "figs/threedep.png", 'width': '100%'}
 
+
+@render.ui
+def matrix_latex():
+    A = np.array([[1, 2], [3, 4]])
+    # 将矩阵格式化成 LaTeX bmatrix 表达式
+    matrix_str = "\\begin{bmatrix}" + " \\\\ ".join(
+        [" & ".join(map(str, row)) for row in A]
+    ) + "\\end{bmatrix}"
+
+    return ui.HTML(f"$$ {matrix_str} $$")
+
+with ui.card():  
+    ui.card_header("Card with sidebar")
+
+    with ui.layout_sidebar():  
+        with ui.sidebar(bg="#f8f8f8"):  
+            ui.input_file('f', '选择图片', accept='image/*')
+            ui.input_select(
+                'kernel',
+                '选择卷积核',
+                kernel_chioces
+                )
+            ui.input_slider('size', 'f', 1, 10, 1)
+            ui.input_slider('padding', 'p', 0, 10, 0)
+            ui.input_slider('stride', 's', 1, 10, 1)
+
+        "Card content"  
+        @render.text
+        def text1():
+            return f'Before Convolution'
+
+        @render.image
+        def image():
+            img = Image.fromarray(src_image())
+            tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+            img.save(tmp.name)
+            img = {'src': tmp.name, 'width': '300px'}
+            return img
+
+        @render.text
+        def text2():
+            return f'After Convolution'
+
+        @render.image
+        def convolved_image():
+            img = Image.fromarray(convolve_img())
+            tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
+            img.save(tmp.name)
+            return {'src': tmp.name, 'width': '300px'}
 
 @reactive.calc
 def parsed_file():
@@ -73,11 +124,6 @@ def generate_kernel():
         kernel[size // 2, :] = np.linspace(-1, 1, size)
         return kernel
 
-    elif kernel_type == 'laplacian':
-        kernel = np.ones((size, size)) * -1
-        kernel[size//2, size//2] = size*size - 1
-        return kernel
-
     else:
         return np.eye(size)  # fallback
 
@@ -99,25 +145,3 @@ def convolve_img():
     return output_array
 
 
-@render.text
-def text1():
-    return f'Before Convolution'
-
-@render.image
-def image():
-    img = Image.fromarray(src_image())
-    tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-    img.save(tmp.name)
-    img = {'src': tmp.name, 'width': '300px'}
-    return img
-
-@render.text
-def text2():
-    return f'After Convolution'
-
-@render.image
-def convolved_image():
-    img = Image.fromarray(convolve_img())
-    tmp = tempfile.NamedTemporaryFile(suffix='.png', delete=False)
-    img.save(tmp.name)
-    return {'src': tmp.name, 'width': '300px'}
