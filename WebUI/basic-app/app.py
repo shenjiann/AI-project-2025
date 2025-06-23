@@ -7,7 +7,7 @@ app_ui = ui.page_fluid(
     # 对ID为 threedep 的图片输出容器调整CSS，缩小下方外边距
     ui.tags.style("""
         #threedep {
-            margin-bottom: -300px !important;
+            margin-bottom: -320px !important;
         }
     """),
 
@@ -15,10 +15,10 @@ app_ui = ui.page_fluid(
     ui.output_image("threedep"),
     ui.panel_title("二维卷积计算"),
     # 输入矩阵设定
-    ui.input_slider('height', r'\( d_H \)', 1, 10, 4),
-    ui.input_slider('width', r'\(d_W\)', 1, 10, 4),
+    ui.input_slider('height', r'\( d_H \)', 1, 10, 5),
+    ui.input_slider('width', r'\(d_W\)', 1, 10, 5),
     # 卷积设定
-    ui.input_slider('size', r'\(f\)', 1, 5, 2),
+    ui.input_slider('size', r'\(f\)', 1, 7, 3, step=2),
     ui.input_slider("stride", r"\(s\)", 1, 5, 1),
     ui.input_slider('padding', r'\(p\)', 0, 5, 0),
     ui.input_select('kernel','选择卷积核类型', kernel_choices),
