@@ -2,6 +2,8 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 from math import comb
+import base64
+from io import BytesIO
 
 conv_modes = {
     'Random': '随机整数',
@@ -12,7 +14,7 @@ conv_modes = {
     'SobelHori': 'Sobel核(水平边界)'
 }
 
-def generate_input(height:int, width:int, seed:int=42) -> np.ndarray:
+def generate_int_array(height:int, width:int, seed:int=42) -> np.ndarray:
     np.random.seed(seed)
     return np.random.randint(0, 10, size=(height, width))
 
@@ -61,7 +63,7 @@ def convolve(input:np.ndarray, kernel:np.ndarray, stride:int, padding:int) -> np
     result = F.conv2d(input_tensor, kernel_tensor, stride=stride, padding=padding)
     return result.squeeze().detach().numpy()
 
-def mat2latex(matrix: np.ndarray, wrap: bool = True) -> str:
+def mat2latex(matrix: np.ndarray, wrap: bool = False) -> str:
     """
     2D矩阵转换为latex表达式
     """
@@ -74,3 +76,27 @@ def mat2latex(matrix: np.ndarray, wrap: bool = True) -> str:
     rows = [" & ".join(map(format_element, row)) for row in matrix]
     latex = r"\begin{bmatrix}" + r" \\".join(rows) + r"\end{bmatrix}"
     return f"$$ {latex} $$" if wrap else latex
+
+def pil_to_base64(img):
+    buffered = BytesIO()
+    img.save(buffered, format="PNG")
+    return base64.b64encode(buffered.getvalue()).decode()
+
+def get_html_img2img(input_b64, padding, kernel_tex, output_b64, stride):
+    return rf"""
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <div class="image-with-label">
+                <img src="data:image/png;base64,{input_b64}" style="max-width: 200px; height: auto;">
+            </div>
+            <div style="font-size: 1em; margin: 0px 0; text-align: center;">
+                \[ \downarrow \]
+                <script>MathJax.typesetPromise();</script>
+            </div>
+            <div class="image-with-label">
+                <img src="data:image/png;base64,{output_b64}" style="max-width: 200px; height: auto;">
+            </div>
+        </div>
+    """
+
+
+
