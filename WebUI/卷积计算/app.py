@@ -32,21 +32,33 @@ app_ui = ui.page_fluid(
     ui.output_image("threedep"),
     ui.panel_title("二维卷积计算"),
     ui.layout_columns(
-        ui.card(
-            ui.h5('参数设定'),
-            ui.input_slider('height', r'\( d_H \)', 1, 10, 5),
-            ui.input_slider('width', r'\(d_W\)', 1, 10, 5),
-            ui.input_slider('size', r'\(f\)', 1, 7, 3, step=2),
-            ui.input_slider("stride", r"\(s\)", 1, 5, 1),
-            ui.input_slider('padding', r'\(p\)', 0, 5, 0),
-            ui.input_select('kernel','选择卷积核类型', conv_modes),
-            ui.input_numeric("seed", "随机种子", 42),
+        ui.div(
+            ui.navset_card_tab(
+                ui.nav_panel(
+                    "输入矩阵设定", 
+                    ui.input_slider('height', r'\( d_H \)', 1, 10, 5),
+                    ui.input_slider('width', r'\(d_W\)', 1, 10, 5),
+                ),
+                ui.nav_panel(
+                    "输入自选图片", 
+                    ui.input_file('image', None, accept='image/*')
+                ),
+                id='input_type'
+            ),
+            ui.card(
+                ui.h5('卷积核设定'),
+                ui.input_slider('size', r'\(f\)', 1, 7, 3, step=2),
+                ui.input_slider("stride", r"\(s\)", 1, 5, 1),
+                ui.input_slider('padding', r'\(p\)', 0, 5, 0),
+                ui.input_select('kernel','选择卷积核类型', conv_modes),
+                ui.input_numeric("seed", "随机种子", 42),
+            ),
             width=1
         ),
         ui.card(
-            ui.h5('结果'),
+            ui.h5('输出'),
             ui.output_ui('input2output_latex'),
-            width=4
+            width=40
         )
     ),
 )
@@ -59,7 +71,7 @@ def server(input, output, session):
             "src": here/"figs/threedep.png",
             "style": "width: 100%; max-height: 60px; display: block; margin: 0; padding: 0;"
         }
-    
+
     @reactive.calc
     def input_array():
         return generate_input(height=input.height(), width=input.width(), seed=input.seed())
