@@ -3,8 +3,8 @@ import torch
 import torch.nn.functional as F
 
 pool_modes = {
-    'avg': '平均池化',
-    'max': '最大池化',
+    'Avg Pool': '平均池化',
+    'Max Pool': '最大池化',
 }
 
 def generate_input(height:int, width:int, seed:int=42) -> np.ndarray:
@@ -13,9 +13,9 @@ def generate_input(height:int, width:int, seed:int=42) -> np.ndarray:
 
 def pool(input_array: np.ndarray, kernel_size: int, stride: int, padding: int, mode: str = "max") -> np.ndarray:
     x = torch.tensor(input_array, dtype=torch.float32).unsqueeze(0).unsqueeze(0)  # (1,1,H,W)
-    if mode == "max":
+    if mode == "Max Pool":
         y = F.max_pool2d(x, kernel_size=kernel_size, stride=stride, padding=padding)
-    elif mode == 'avg':
+    elif mode == 'Avg Pool':
         y = F.avg_pool2d(x, kernel_size=kernel_size, stride=stride, padding=padding)
     else:
         raise ValueError(f"Unsupported mode: '{mode}'. Expected 'max' or 'avg'")

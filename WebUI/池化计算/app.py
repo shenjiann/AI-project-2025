@@ -32,21 +32,26 @@ app_ui = ui.page_fluid(
     ui.panel_title("二维池化计算"),
 
     ui.layout_columns(
-        ui.card(
-            ui.h5('参数设置'),
-            ui.input_slider('height', r'\(d_H\)', 1, 10, 5),
-            ui.input_slider('width', r'\(d_W\)', 1, 10, 5),
-            ui.input_slider("size", r"\(f\)", 1, 7, 2),
-            ui.input_slider("stride", r"\(s\)", 1, 5, 2),
-            ui.input_slider("padding", r"\(p\)", 0, 5, 0),
-            ui.input_select("mode", "池化方式", pool_modes),
-            ui.input_numeric("seed", "随机种子", 42),
+        ui.div(
+            ui.card(
+                ui.h5('参数设置'),
+                ui.input_slider('height', r'\(d_H\)', 1, 10, 5),
+                ui.input_slider('width', r'\(d_W\)', 1, 10, 5),
+            ),
+            ui.card(
+                ui.h5('池化设置'),
+                ui.input_slider("size", r"\(f\)", 1, 7, 2),
+                ui.input_slider("stride", r"\(s\)", 1, 5, 2),
+                ui.input_slider("padding", r"\(p\)", 0, 5, 0),
+                ui.input_select("mode", "池化方式", pool_modes),
+                ui.input_numeric("seed", "随机种子", 42),
+            )
         ),
-
         ui.card(
             ui.h5('输出'),
             ui.output_ui('input2output_latex'),
-        )
+        ),
+        col_widths=[4,8]
     )
 )
 
