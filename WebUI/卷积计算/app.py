@@ -1,7 +1,7 @@
 from shiny import App, render, ui, reactive
 import numpy as np
 from pathlib import Path
-from utility import kernel_choices, generate_kernel, mat_to_latex, generate_input, convolve
+from utility import conv_modes, generate_kernel, mat2latex, generate_input, convolve
 
 app_ui = ui.page_fluid(
     # 对ID为 threedep 的图片输出容器调整CSS，缩小下方外边距
@@ -11,28 +11,6 @@ app_ui = ui.page_fluid(
         }
     """),
 
-    # 图片和标题
-    ui.output_image("threedep"),
-    ui.panel_title("二维卷积计算"),
-    ui.layout_columns(
-        ui.card(
-            ui.h5('参数设定'),
-            ui.input_slider('height', r'\( d_H \)', 1, 10, 5),
-            ui.input_slider('width', r'\(d_W\)', 1, 10, 5),
-            ui.input_slider('size', r'\(f\)', 1, 7, 3, step=2),
-            ui.input_slider("stride", r"\(s\)", 1, 5, 1),
-            ui.input_slider('padding', r'\(p\)', 0, 5, 0),
-            ui.input_select('kernel','选择卷积核类型', kernel_choices),
-            ui.input_numeric("seed", "随机种子", 42),
-            width=1
-        ),
-        ui.card(
-            ui.h5('结果'),
-            ui.output_ui('input2output_latex'),
-            width=4
-        )
-    ),
-    
     # 加载 MathJax
     ui.HTML("""
     <script type="text/javascript"
@@ -47,7 +25,30 @@ app_ui = ui.page_fluid(
         }
     });
     </script>
-    """)
+    """
+    ),
+
+    # 图片和标题
+    ui.output_image("threedep"),
+    ui.panel_title("二维卷积计算"),
+    ui.layout_columns(
+        ui.card(
+            ui.h5('参数设定'),
+            ui.input_slider('height', r'\( d_H \)', 1, 10, 5),
+            ui.input_slider('width', r'\(d_W\)', 1, 10, 5),
+            ui.input_slider('size', r'\(f\)', 1, 7, 3, step=2),
+            ui.input_slider("stride", r"\(s\)", 1, 5, 1),
+            ui.input_slider('padding', r'\(p\)', 0, 5, 0),
+            ui.input_select('kernel','选择卷积核类型', conv_modes),
+            ui.input_numeric("seed", "随机种子", 42),
+            width=1
+        ),
+        ui.card(
+            ui.h5('结果'),
+            ui.output_ui('input2output_latex'),
+            width=4
+        )
+    ),
 )
 
 def server(input, output, session):
@@ -73,9 +74,9 @@ def server(input, output, session):
     
     @render.ui
     def input2output_latex():
-        input_tex = mat_to_latex(input_array(), wrap=False)
-        kernel_tex = mat_to_latex(kernel_array(), wrap=False)
-        output_tex = mat_to_latex(output_array(), wrap=False)
+        input_tex = mat2latex(input_array(), wrap=False)
+        kernel_tex = mat2latex(kernel_array(), wrap=False)
+        output_tex = mat2latex(output_array(), wrap=False)
         padding_val = input.padding()
         stride_val = input.stride()
 
