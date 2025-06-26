@@ -61,13 +61,12 @@ app_ui = ui.page_fluid(
                 ui.input_select('kernel','选择卷积核类型', conv_modes),
                 ui.input_numeric("seed", "随机种子", 42),
             ),
-            width=1
         ),
         ui.card(
             ui.h5('输出'),
-            ui.output_ui('get_html_output'),
-            width=4
-        )
+            ui.output_ui('get_html_output')
+        ),
+        col_widths=[4, 8]
     ),
 )
 
