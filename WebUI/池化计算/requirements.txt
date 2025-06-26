@@ -1,0 +1,3 @@
+shiny      # Web UI 框架
+numpy      # 数值计算
+torch      # PyTorch：卷积 / 池化等张量运算
