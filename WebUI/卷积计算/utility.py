@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 from math import comb
 
-kernel_choices = {
+conv_modes = {
     'Random': '随机整数',
     'Smooth': '平均核',
     'Gaussian': '高斯核',
@@ -61,7 +61,7 @@ def convolve(input:np.ndarray, kernel:np.ndarray, stride:int, padding:int) -> np
     result = F.conv2d(input_tensor, kernel_tensor, stride=stride, padding=padding)
     return result.squeeze().detach().numpy()
 
-def mat_to_latex(matrix: np.ndarray, wrap: bool = True) -> str:
+def mat2latex(matrix: np.ndarray, wrap: bool = True) -> str:
     """
     2D矩阵转换为latex表达式
     """
