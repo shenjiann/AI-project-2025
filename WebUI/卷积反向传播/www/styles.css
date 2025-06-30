@@ -1,0 +1,30 @@
+/* 矩阵布局样式 */
+.matrix-grid {
+    display: grid;
+    /* grid-template-columns: repeat(5, 40px); */
+    grid-gap: 0.5px;
+    /* row-gap: 0.2px;
+    column-gap: 0.2px; */
+    /* margin-top: 10px; */
+}
+
+.cell, .highlight {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 30px;
+    width: 30px;
+    font-size: 16px;
+    border: 1px solid #ddd;
+    background-color: white;
+}
+.highlight {
+    background-color: lightcoral;
+    font-weight: bold;
+    color: white;
+}
+
+/* 额外组件样式 */
+#threedep {
+    margin-bottom: -320px !important;
+}
