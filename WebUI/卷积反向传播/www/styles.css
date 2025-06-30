@@ -16,16 +16,16 @@
     top: 0;
     height: 100%;
     width: 6px;
-    border: 2px solid #000;
+    border: 1.5px solid #000;
 }
 
 .matrix-container .matrix:before {
-    left: -8px;
+    left: -7px;
     border-right: none;
 }
 
 .matrix-container .matrix:after {
-    right: -8px;
+    right: -7px;
     border-left: none;
 }
 
