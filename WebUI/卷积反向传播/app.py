@@ -1,4 +1,4 @@
-from shiny import App, ui, render
+from shiny import App, ui, render, reactive
 import numpy as np
 from pathlib import Path
 from utility import *
@@ -17,6 +17,22 @@ app_ui = ui.page_fluid(
     ui.output_ui("input_matrix"),
     ui.h4('卷积核'),
     ui.output_ui("kernel_matrix"),
+
+    ui.HTML("""
+    <script type="text/javascript"
+    id="MathJax-script"
+    async
+    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+    </script>
+    <script>
+    Shiny.addCustomMessageHandler('refresh-mathjax', function(_) {
+        if (window.MathJax) {
+        MathJax.typesetPromise();
+        }
+    });
+    </script>
+    """
+    )
 )
 
 def server(input, output, session):
@@ -30,11 +46,23 @@ def server(input, output, session):
     @output
     @render.ui
     def input_matrix():
-        return ui.HTML(matrix_to_html(input_mat, highlight=[(0, 0), (1, 1), (2, 2)]))
+        matrix_html = matrix_to_html(input_mat, highlight=[(0, 0), (1, 1), (2, 2)])
+        return ui.HTML(rf"""
+            <div class="matrix-row">
+                <div class="matrix-label">\\[ Z_0 = \\]</div>
+                {matrix_html}
+            </div>
+            <script>Shiny.setInputValue('trigger-mathjax', Math.random());</script>
+        """)
     
     @output
     @render.ui
     def kernel_matrix():
         return ui.HTML(matrix_to_html(kernel_mat))
+    
+    @reactive.Effect
+    @reactive.event(input.trigger_mathjax)
+    def _():
+        session.send_custom_message('refresh-mathjax', {})
 
 app = App(app_ui, server)
