@@ -1,4 +1,4 @@
-from shiny import App, ui, render, reactive
+from shiny import App, ui, render, reactive, Session
 import numpy as np
 from pathlib import Path
 from utility import *
@@ -11,35 +11,20 @@ kernel_mat = np.random.randint(-5, 5, size=(3, 3))
 
 app_ui = ui.page_fluid(
     ui.include_css(Path(__file__).parent/"www/styles.css"),
+    ui.HTML((Path(__file__).parent / "www/mathjax_config.html").read_text(encoding="utf-8")),
     # ui.output_image("threedep"),
     ui.panel_title("卷积反向传播"),
     ui.h4('输入矩阵'),
     ui.output_ui("input_matrix"),
     ui.h4('卷积核'),
     ui.output_ui("kernel_matrix"),
-
-    ui.HTML("""
-    <script type="text/javascript"
-    id="MathJax-script"
-    async
-    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-    </script>
-    <script>
-    Shiny.addCustomMessageHandler('refresh-mathjax', function(_) {
-        if (window.MathJax) {
-        MathJax.typesetPromise();
-        }
-    });
-    </script>
-    """
-    )
 )
 
 def server(input, output, session):
     @render.image  
     def threedep():
         return {
-            "src": Path(__file__).parent/"figs/threedep.png",
+            "src": Path(__file__).parent/"www/threedep.png",
             "style": "width: 100%; max-height: 60px; display: block; margin: 0; padding: 0;"
         }
 
