@@ -1,12 +1,12 @@
-<script type="text/javascript"
-    id="MathJax-script"
-    async
-    src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-    </script>
-    <script>
-    Shiny.addCustomMessageHandler('refresh-mathjax', function(_) {
-        if (window.MathJax) {
-        MathJax.typesetPromise();
-        }
-    });
-    </script>
+<script type="text/javascript" async id="MathJax-script"
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+</script>
+
+<!-- 添加 refresh-mathjax 功能 -->
+<script>
+Shiny.addCustomMessageHandler('refresh-mathjax', function(_) {
+    if (window.MathJax) {
+    MathJax.typesetPromise();
+    }
+});
+</script>

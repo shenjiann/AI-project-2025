@@ -15,12 +15,16 @@ Z0.backward(dZ0)
 dZ = Z.grad
 dW = W.grad
 
-def matrix_to_html(matrix: np.ndarray | torch.Tensor, highlight: list[tuple[int, int]] = None) -> str:
+def matrix_to_html(
+        matrix: np.ndarray | torch.Tensor, 
+        highlight: list[tuple[int, int]] = None, 
+        prefix: str = None
+    ) -> str:
     """
     将矩阵转换为带左右中括号的 HTML 表格，并高亮特定元素。
     支持形状为 [1, 1, H, W] 的 PyTorch Tensor。
+    新增 'prefix' 参数，用于在矩阵前显示数学公式文本。
     """
-    import torch  # 防止类型未定义
     if highlight is None:
         highlight = []
 
@@ -31,15 +35,30 @@ def matrix_to_html(matrix: np.ndarray | torch.Tensor, highlight: list[tuple[int,
     if matrix.ndim == 4 and matrix.shape[0] == 1 and matrix.shape[1] == 1:
         matrix = matrix[0, 0]  # 变为 (H, W)
 
-    html = '<div class="matrix-container"><table class="matrix">'
+    matrix_html = '<div class="matrix-container"><table class="matrix">'
     for i in range(matrix.shape[0]):
-        html += '<tr>'
+        matrix_html += '<tr>'
         for j in range(matrix.shape[1]):
             val = matrix[i, j]
             if (i, j) in highlight:
-                html += f'<td class="highlight">{val}</td>'
+                matrix_html += f'<td class="highlight">{val}</td>'
             else:
-                html += f'<td>{val}</td>'
-        html += '</tr>'
-    html += '</table></div>'
-    return html
+                matrix_html += f'<td>{val}</td>'
+        matrix_html += '</tr>'
+    matrix_html += '</table></div>'
+
+    # 添加前缀处理，使用 MathJax 渲染数学公式
+    if prefix:
+        # 将前缀包裹在 MathJax 的数学公式环境中
+        # 使用 \text{} 包裹非数学部分，保持文本样式
+        math_prefix = rf"\({prefix}\)"
+        return rf"""
+        <div class="matrix-row">
+            <div class="matrix-label">
+                {math_prefix}
+            </div>
+            {matrix_html}
+        </div>
+        """
+    else:
+        return matrix_html

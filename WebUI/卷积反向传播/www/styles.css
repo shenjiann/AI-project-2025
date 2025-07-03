@@ -2,6 +2,7 @@
     display: inline-block;
     position: relative;
     margin: 10px auto;
+    vertical-align: middle;
 }
 
 .matrix-container .matrix {
@@ -20,12 +21,12 @@
 }
 
 .matrix-container .matrix:before {
-    left: -7px;
+    left: 0px;
     border-right: none;
 }
 
 .matrix-container .matrix:after {
-    right: -7px;
+    right: 0px;
     border-left: none;
 }
 
@@ -33,20 +34,21 @@
     border: 0px solid #eee;
     padding: 1px 8px;
     text-align: center;
+    /* text-align: flex-start; */
     font-family: "Times New Roman", Times, serif;
 }
 
 .matrix td.highlight {
     background-color: #ffe08a;
-    font-weight: bold;
+    /* font-weight: bold; */
 }
 
 .matrix-row {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    justify-content: center;
-    gap: 12px;
-    margin: 10px;
+    /* justify-content: flex-start; */
+    gap: 10px;
+    margin: 2px;
 }
 
 .matrix-label {
@@ -56,5 +58,13 @@
 
 /* 额外组件样式 */
 #threedep {
-    margin-bottom: -320px !important;
+    /* display: block;
+    margin: 0;
+    padding: 0;
+    max-width: auto;
+    height: auto;
+    object-fit: contain;
+    float: left;
+    clear: both; */
+    margin-bottom: -300px !important;
 }
