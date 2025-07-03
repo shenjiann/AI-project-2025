@@ -11,12 +11,14 @@
   };
 </script>
 
+
 <!-- 加载 MathJax 主脚本 -->
 <script id="MathJax-script" async
   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
 </script>
 
-<!-- Shiny 触发渲染：用于响应后端事件 -->
+
+<!-- 接收refresh-mathjax触发渲染 -->
 <script>
   Shiny.addCustomMessageHandler("refresh-mathjax", function(_) {
     if (window.MathJax && MathJax.typesetPromise) {
@@ -25,25 +27,12 @@
   });
 </script>
 
-<!-- 等待 MathJax 加载完成后再渲染一次 -->
+
+<!-- 在会话初始化完成后发送消息 -->
 <script>
-  window.addEventListener("load", function () {
-    if (window.MathJax && MathJax.typesetPromise) {
-      MathJax.typesetPromise();
-    } else {
-      // 尝试等待 MathJax 加载完成
-      let tries = 0;
-      const maxTries = 20;
-      const interval = setInterval(function () {
-        if (window.MathJax && MathJax.typesetPromise) {
-          MathJax.typesetPromise();
-          clearInterval(interval);
-        }
-        tries += 1;
-        if (tries >= maxTries) {
-          clearInterval(interval);
-        }
-      }, 200);
-    }
+  $(document).on('shiny:sessioninitialized', function(event) {
+  setTimeout(function() {
+      Shiny.setInputValue('init_mathjax', true, {priority: "event"});
+  }, 10); // 添加10ms延迟确保会话完全就绪
   });
 </script>

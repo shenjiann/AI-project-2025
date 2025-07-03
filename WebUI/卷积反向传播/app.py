@@ -23,15 +23,14 @@ app_ui = ui.page_fluid(
     ui.input_slider("row_highlight", "高亮行 (row)", min=1, max=3, value=1, step=1),
     ui.input_slider("col_highlight", "高亮列 (column)", min=1, max=3, value=1, step=1),
     ui.output_ui("dZ_html"),
-    ui.h4(r'\(dW^{l-1}\)'),
+    ui.h4(' '),
     ui.output_ui("dW_html"),
-
 )
 
 def server(input, output, session):
     async def refresh_mathjax():
         """发送消息触发 MathJax 重新渲染"""
-        await asyncio.sleep(0.001)  # 等待 DOM 更新
+        await asyncio.sleep(0.01)  # 等待 DOM 更新
         session = get_current_session()
         await session.send_custom_message("refresh-mathjax", {})
 
@@ -47,27 +46,23 @@ def server(input, output, session):
         }
 
     @render.ui
-    async def Z_html():
-        await refresh_mathjax()
+    def Z_html():
+        # await refresh_mathjax()
         return ui.HTML(
-            r'\( Z = \)' + 
-            matrix_to_html(Z, highlight=[(0, 0), (2, 2), (0, 2)]))
+            matrix_to_html(Z, highlight=[(0, 0), (2, 2), (0, 2)], prefix='\\( Z = \\)'))
     
     @render.ui
-    async def W_html():
+    def W_html():
         out = ui.HTML(
-            matrix_to_html(W, prefix="W = ") +
+            matrix_to_html(W, prefix="\\( W = \\) ") +
             matrix_to_html(W, prefix=' + ', highlight=[(0,0)])
             )
-        await refresh_mathjax()
         return out
     
     @render.ui
-    async def dZ0_html():
-        await refresh_mathjax()
+    def dZ0_html():
         return ui.HTML(
-            r'\( dZ_0 =  \)' + 
-            matrix_to_html(dZ0)
+            matrix_to_html(dZ0, prefix='\\( dZ_0 = \\) ')
             )
 
     @render.ui
@@ -76,21 +71,24 @@ def server(input, output, session):
         col = input.col_highlight() - 1
         highlight_coords = [(row, col)]
         html = ui.HTML(r'\( dZ \) = ' + matrix_to_html(dZ, highlight=highlight_coords) + r' + ' + matrix_to_html(W))
-        await refresh_mathjax()
         return html
         
     @render.ui
-    async def dW_html():
-        await refresh_mathjax()
+    def dW_html():
+        # await refresh_mathjax()
         return ui.HTML(
             r'\( d W^{l-1} \) = ' + 
             matrix_to_html(dW)
             )
+    
+# 使用reactive.Calc确保会话完全就绪
+    @reactive.Calc
+    async def init_mathjax():
+        await asyncio.sleep(0.1)  # 确保会话完全初始化
+        return True
 
-    @reactive.Effect
-    @reactive.event(input.trigger_mathjax)
-    def _():
-        session.send_custom_message('refresh-mathjax', {})
-
-
+    @reactive.effect
+    @reactive.event(input.init_mathjax)
+    async def _():
+        await refresh_mathjax()
 app = App(app_ui, server)
