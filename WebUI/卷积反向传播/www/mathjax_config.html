@@ -1,4 +1,3 @@
-<!-- 配置 MathJax -->
 <script>
   window.MathJax = {
     tex: {
@@ -11,28 +10,34 @@
   };
 </script>
 
-
-<!-- 加载 MathJax 主脚本 -->
 <script id="MathJax-script" async
   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
 </script>
 
-
-<!-- 接收refresh-mathjax触发渲染 -->
 <script>
-  Shiny.addCustomMessageHandler("refresh-mathjax", function(_) {
+  Shiny.addCustomMessageHandler("render-mathjax", function(_) {
+    console.log("Client received 'render-mathjax' message. Attempting MathJax typeset.");
     if (window.MathJax && MathJax.typesetPromise) {
-      MathJax.typesetPromise();
+      // **Crucially, add a setTimeout here.**
+      // This allows the browser's DOM to fully update BEFORE MathJax scans it.
+      setTimeout(function() {
+        MathJax.typesetPromise().then(function() {
+          console.log("MathJax typeset completed successfully.");
+        }).catch(function(err) {
+          console.error("MathJax typesetting error:", err);
+        });
+      }, 50); // Increased delay to 100ms for robustness. Adjust if needed.
+    } else {
+        console.warn("MathJax not ready when 'render-mathjax' message received.");
     }
   });
 </script>
 
-
-<!-- 在会话初始化完成后发送消息 -->
 <script>
   $(document).on('shiny:sessioninitialized', function(event) {
-  setTimeout(function() {
-      Shiny.setInputValue('init_mathjax', true, {priority: "event"});
-  }, 10); // 添加10ms延迟确保会话完全就绪
+    console.log("Shiny session initialized on client. Sending signal to server.");
+    // Send a signal to the server that the client-side session is ready.
+    // This uses setInputValue with a priority "event" to make it fire once.
+    Shiny.setInputValue('session_initialized_client', true, {priority: "event"});
   });
 </script>
