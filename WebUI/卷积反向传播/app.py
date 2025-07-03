@@ -12,6 +12,10 @@ app_ui = ui.page_fluid(
 
     # ui.output_image("threedep"),
     # ui.panel_title("卷积反向传播"),
+    ui.input_slider('height', 'height', min=3, max=5, value=3, step=1),
+    ui.input_slider('width', 'width', min=3, max=5, value=3, step=1),
+    ui.input_slider('channel', 'channel', min=1, max=2, value=1, step=1),
+
     ui.h4(' '),
     ui.output_ui("Z_html"),
     ui.h4(' '),
@@ -19,7 +23,6 @@ app_ui = ui.page_fluid(
     ui.h4(' '),
     ui.output_ui("dZ0_html"),
     ui.h4(' '),
-    ui.input_slider('height', 'height', min=3, max=5, value=3, step=1),
     ui.input_slider("row_highlight", "高亮行 (row)", min=1, max=3, value=1, step=1),
     ui.input_slider("col_highlight", "高亮列 (column)", min=1, max=3, value=1, step=1),
     ui.output_ui("dZ_html"),
@@ -36,6 +39,7 @@ def server(input, output, session):
 
     @reactive.effect
     def _():
+        # 根据输入的高度、宽度和通道数更新高亮slider
         ui.update_slider(id='row_highlight', label='高亮行 (row)', min=1, max=input.height(), value=1, step=1)
 
     @render.image
@@ -71,24 +75,20 @@ def server(input, output, session):
         col = input.col_highlight() - 1
         highlight_coords = [(row, col)]
         html = ui.HTML(r'\( dZ \) = ' + matrix_to_html(dZ, highlight=highlight_coords) + r' + ' + matrix_to_html(W))
+        await refresh_mathjax() 
         return html
         
     @render.ui
     def dW_html():
-        # await refresh_mathjax()
         return ui.HTML(
             r'\( d W^{l-1} \) = ' + 
             matrix_to_html(dW)
             )
-    
-# 使用reactive.Calc确保会话完全就绪
-    @reactive.Calc
-    async def init_mathjax():
-        await asyncio.sleep(0.1)  # 确保会话完全初始化
-        return True
 
     @reactive.effect
     @reactive.event(input.init_mathjax)
     async def _():
         await refresh_mathjax()
+
+
 app = App(app_ui, server)
