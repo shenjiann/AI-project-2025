@@ -1,33 +1,17 @@
 import asyncio
-from shiny import App, ui, render, reactive, Session
+from shiny import App, ui, render, reactive
 from shiny.session import get_current_session
-import numpy as np
+# import numpy as np
 from pathlib import Path
-from utility import *
+from utility import matrix_to_html, Z, W, dZ, dZ0, dW
 
 
 app_ui = ui.page_fluid(
-    ui.include_css(
-        Path(__file__).parent/"www/styles.css"),
-    ui.HTML(
-        (Path(__file__).parent / "www/mathjax_config.html"
-         ).read_text(encoding="utf-8")),
-    ui.tags.script("""
-        // Add listener for shiny:visualchange to re-render MathJax on UI updates
-        document.addEventListener("shiny:visualchange", function() {
-            if (window.MathJax) {
-                MathJax.typeset();
-            }
-        });
-        // Add listener for shiny:connected to trigger initial MathJax render on page load
-        document.addEventListener("shiny:connected", function() {
-            if (window.MathJax) {
-                MathJax.typeset();
-            }
-        });
-        """),
-    ui.output_image("threedep"),
-    ui.panel_title("卷积反向传播"),
+    ui.include_css(Path(__file__).parent/"www/styles.css"),
+    ui.HTML((Path(__file__).parent / "www/mathjax_config.html").read_text(encoding="utf-8")),
+
+    # ui.output_image("threedep"),
+    # ui.panel_title("卷积反向传播"),
     ui.h4(' '),
     ui.output_ui("Z_html"),
     ui.h4(' '),
@@ -71,11 +55,12 @@ def server(input, output, session):
     
     @render.ui
     async def W_html():
-        await refresh_mathjax()
-        return  ui.HTML(
+        out = ui.HTML(
             matrix_to_html(W, prefix="W = ") +
             matrix_to_html(W, prefix=' + ', highlight=[(0,0)])
-        )
+            )
+        await refresh_mathjax()
+        return out
     
     @render.ui
     async def dZ0_html():
@@ -90,14 +75,7 @@ def server(input, output, session):
         row = input.row_highlight() - 1
         col = input.col_highlight() - 1
         highlight_coords = [(row, col)]
-
-        html = ui.HTML(
-            r'\( dZ \) = ' + 
-            matrix_to_html(dZ, highlight=highlight_coords) +
-            r' + ' + 
-            matrix_to_html(W)
-        )
-
+        html = ui.HTML(r'\( dZ \) = ' + matrix_to_html(dZ, highlight=highlight_coords) + r' + ' + matrix_to_html(W))
         await refresh_mathjax()
         return html
         

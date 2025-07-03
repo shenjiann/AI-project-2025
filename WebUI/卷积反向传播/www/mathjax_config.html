@@ -1,12 +1,49 @@
-<script type="text/javascript" async id="MathJax-script"
+<!-- 配置 MathJax -->
+<script>
+  window.MathJax = {
+    tex: {
+      inlineMath: [['$', '$'], ['\\(', '\\)']],
+      displayMath: [['\\[', '\\]'], ['$$', '$$']]
+    },
+    svg: {
+      fontCache: 'global'
+    }
+  };
+</script>
+
+<!-- 加载 MathJax 主脚本 -->
+<script id="MathJax-script" async
   src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
 </script>
 
-<!-- 添加 refresh-mathjax 功能 -->
+<!-- Shiny 触发渲染：用于响应后端事件 -->
 <script>
-Shiny.addCustomMessageHandler('refresh-mathjax', function(_) {
-    if (window.MathJax) {
-    MathJax.typesetPromise();
+  Shiny.addCustomMessageHandler("refresh-mathjax", function(_) {
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise();
     }
-});
+  });
+</script>
+
+<!-- 等待 MathJax 加载完成后再渲染一次 -->
+<script>
+  window.addEventListener("load", function () {
+    if (window.MathJax && MathJax.typesetPromise) {
+      MathJax.typesetPromise();
+    } else {
+      // 尝试等待 MathJax 加载完成
+      let tries = 0;
+      const maxTries = 20;
+      const interval = setInterval(function () {
+        if (window.MathJax && MathJax.typesetPromise) {
+          MathJax.typesetPromise();
+          clearInterval(interval);
+        }
+        tries += 1;
+        if (tries >= maxTries) {
+          clearInterval(interval);
+        }
+      }, 200);
+    }
+  });
 </script>
