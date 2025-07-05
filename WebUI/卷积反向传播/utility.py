@@ -30,7 +30,7 @@ def generate_data(
         'Z^{[l-1]}': Z,
         'W^{[l]}': W,
         'Z_0^{[l]}': Z0,
-        'dZ^{[l]}_0': dZ0,
+        'dZ_0^{[l]}': dZ0,
         'dZ^{[l-1]}': dZ,
         'dW^{[l]}': dW
     }

@@ -3,7 +3,7 @@ from shiny import App, ui, render, reactive
 from shiny.session import get_current_session
 from pathlib import Path
 from utility import pad_matrix, generate_data, tensor2html
-from module import display_tensor_ui, display_tensor_server
+from modules import display_tensor_ui, display_tensor_server
 
 app_ui = ui.page_fluid(
     # 加载 CSS 和 MathJax 配置
@@ -27,10 +27,10 @@ app_ui = ui.page_fluid(
                 r'\( d_C^{[l]} = 1\)',
             ),
         # 主面板
-        ui.output_ui('Z_display'),
-        ui.output_ui('W_display'),
-        ui.output_ui('Z0_display'),
-        ui.output_ui('dZ0_display'),
+        display_tensor_ui('display_Z'),
+        display_tensor_ui('display_W'),
+        display_tensor_ui('display_Z0'),
+        display_tensor_ui('display_dZ0'),
         ),
     ),  
 
@@ -75,65 +75,12 @@ def server(input, output, session):
             seed=42
         )
 
-    @render.ui
-    def Z_display():
-        parts = [
-            '<div class="equation">',
-            '<span class="equation-symbol">\\( Z^{[l-1]} = \\)</span>',
-            "\\( , \\)".join(tensor2html(data()['Z^{[l-1]}'])),
-            '</div>'
-        ]
-        return ui.HTML("".join(parts))
-    
-    @render.ui
-    def W_display():
-        parts = [
-            '<div class="equation">',
-            '<span class="equation-symbol">\\( W^{[l]} = \\)</span>',
-            "\\( , \\)".join(tensor2html(data()['W^{[l]}'])),
-            '</div>'
-        ]
-        return ui.HTML("".join(parts))
-    
-    @render.ui
-    def Z0_display():
-        parts = [
-            '<div class="equation">',
-            '<span class="equation-symbol">\\( Z_0^{[l]} = \\)</span>',
-            "\\( , \\)".join(tensor2html(data()['Z_0^{[l]}'])),
-            '</div>'
-        ]
-        return ui.HTML("".join(parts))
-
-    @render.ui
-    def dZ0_display():
-        parts = [
-            '<div class="equation">',
-            '<span class="equation-symbol">\\( dZ^{[l]}_0 = \\)</span>',
-            "\\( , \\)".join(tensor2html(data()['dZ^{[l]}_0'])),
-            '</div>'
-        ]
-        return ui.HTML("".join(parts))
-
-    @render.ui
-    def dZ_display():
-        parts = [
-            '<div class="equation">',
-            '<span class="equation-symbol">\\( dZ^{[l-1]} = \\)</span>',
-            "\\( , \\)".join(tensor2html(data()['dZ^{[l-1]}'])),
-            '</div>'
-        ]
-        return ui.HTML("".join(parts))
-
-    @render.ui
-    def dW_display():
-        parts = [
-            '<div class="equation">',
-            '<span class="equation-symbol">\\( dW^{[l]} = \\)</span>',
-            "\\( , \\)".join(tensor2html(data()['dW^{[l]}'])),
-            '</div>'
-        ]
-        return ui.HTML("".join(parts))
+    display_tensor_server('display_Z', label='dZ^{[l-1]}', data_calc=data)
+    display_tensor_server('display_W', label='W^{[l]}', data_calc=data)
+    display_tensor_server('display_Z0', label='Z_0^{[l]}', data_calc=data)
+    display_tensor_server('display_dZ0', label='dZ_0^{[l]}', data_calc=data)
+    display_tensor_server('display_dZ', label='dZ^{[l-1]}', data_calc=data)
+    display_tensor_server('display_dW', label='dW^{[l]}', data_calc=data)
 
     
     # --- MathJax 渲染逻辑 ---
