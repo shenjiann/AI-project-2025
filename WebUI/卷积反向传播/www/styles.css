@@ -1,7 +1,7 @@
 .matrix-container {
     display: inline-block;
     position: relative;
-    margin: 10px auto;
+    margin: 4px 6px;
     vertical-align: middle;
 }
 
@@ -10,6 +10,7 @@
     position: relative;
 }
 
+/* 矩阵两侧中括号 */
 .matrix-container .matrix:before,
 .matrix-container .matrix:after {
     content: "";
@@ -30,41 +31,41 @@
     border-left: none;
 }
 
+/* 矩阵元素 */
 .matrix td {
-    border: 0px solid #eee;
-    padding: 1px 8px;
-    text-align: center;
+    border: 0px solid #eee; /* 矩阵元素边线 */
+    padding: 1px 8px; /* 矩阵元素内边距 */
+    text-align: center; 
     /* text-align: flex-start; */
     font-family: "Times New Roman", Times, serif;
 }
 
+/* 矩阵内元素高亮 */
 .matrix td.highlight {
     background-color: #ffe08a;
-    /* font-weight: bold; */
 }
 
-.matrix-row {
+/* .matrix-row {
     display: inline-flex;
     align-items: center;
-    /* justify-content: flex-start; */
     gap: 10px;
     margin: 2px;
-}
+} */
 
-.matrix-label {
+/* 公式内非矩阵元素 */
+.equation-symbol {
     font-size: 18px;
     font-family: 'Times New Roman', Times, serif;
+    display: inline-block;
+}
+
+/* 公式整体 */
+.equation {
+    display:inline-block;
+    white-space:nowrap;
 }
 
 /* 额外组件样式 */
 #threedep {
-    /* display: block;
-    margin: 0;
-    padding: 0;
-    max-width: auto;
-    height: auto;
-    object-fit: contain;
-    float: left;
-    clear: both; */
     margin-bottom: -300px !important;
 }

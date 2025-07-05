@@ -26,7 +26,7 @@
         }).catch(function(err) {
           console.error("MathJax typesetting error:", err);
         });
-      }, 50); // Increased delay to 100ms for robustness. Adjust if needed.
+      }, 10);
     } else {
         console.warn("MathJax not ready when 'render-mathjax' message received.");
     }

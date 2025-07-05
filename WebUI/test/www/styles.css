@@ -1,0 +1,39 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+/* 默认的 div 和 p 都是块级元素 */
+div {
+    border: 1px solid lightgray;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+p {
+    border: 1px dashed #ccc;
+    padding: 5px;
+    margin-bottom: 10px;
+}
+
+span {
+    border: 1px dotted orange;
+    padding: 2px;
+    margin-right: 5px;
+}
+
+/* 示例中自定义的类 */
+.my-block-div {
+    background-color: #e0f7fa; /* 浅蓝色背景 */
+}
+
+/* ... (保留上面的所有样式) ... */
+
+.my-inline-block-div {
+    background-color: #ffe0b2; /* 浅橙色背景 */
+    display: inline; /* 关键改变：使其变为行内块级 */
+    margin-right: 10px; /* 为了区分，添加一些右边距 */
+    width: 200px; /* 行内块级元素可以设置宽度 */
+    height: 100px; /* 行内块级元素可以设置高度 */
+    vertical-align: top; /* 垂直对齐，观察效果 */
+}
