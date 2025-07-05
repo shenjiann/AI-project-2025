@@ -2,18 +2,32 @@ import numpy as np
 import torch
 import torch.nn.functional as F
 
-torch.manual_seed(42)
-Z = torch.randint(
-    low=-5, high=6, size=(1, 1, 3, 3), 
-    dtype=torch.float32, requires_grad=True)
-W = torch.randint(
-    low=-3, high=4, size=(1, 1, 2, 2), 
-    dtype=torch.float32, requires_grad=True)
-Z0 = F.conv2d(Z, W)
-dZ0 = torch.randint(-3, 3, Z0.shape, dtype=torch.float32)
-Z0.backward(dZ0)
-dZ = Z.grad
-dW = W.grad
+def generate_data(
+    d_H: int = 3,
+    d_W: int = 3,
+    d_C: int = 1,
+    f: int = 1,
+    seed: int = 42
+):
+    torch.manual_seed(seed)
+    Z = torch.randint(
+        low=-5, high=6, size=(1, d_C, d_H, d_W), 
+        dtype=torch.float32, requires_grad=True
+    )
+    W = torch.randint(
+        low=-3, high=4, size=(1, d_C, f, f), 
+        dtype=torch.float32, requires_grad=True
+    )
+    Z0 = F.conv2d(Z, W)
+    dZ0 = torch.randint(
+        low=-3, high=3, size=Z0.shape, 
+        dtype=torch.float32
+    )
+    Z0.backward(dZ0)
+    dZ = Z.grad
+    dW = W.grad
+    return Z, W, Z0, dZ0, dZ, dW
+
 
 def pad_matrix(
         matrix: torch.Tensor,
@@ -31,19 +45,19 @@ def matrix_to_html(
     ) -> str:
     """
     将矩阵转换为带左右中括号的 HTML 表格，并高亮特定元素。
-    支持形状为 [1, 1, H, W] 的 PyTorch Tensor。
+    支持形状为 [1, 1, H, W] 的 PyTorch Tensor
     """
     if highlight is None:
         highlight = []
 
-    # 如果是 PyTorch tensor，转换为 NumPy 并 squeeze 成 2D
+    # 如果是 PyTorch tensor，转换为 NumPy 并 squeeze 成 2D 或 3D
     if isinstance(matrix, torch.Tensor):
         matrix = matrix.detach().cpu().numpy()
 
     if matrix.ndim == 4 and matrix.shape[0] == 1 and matrix.shape[1] == 1:
         matrix = matrix[0, 0]  # 变为 (H, W)
 
-    # 矩阵的 HTML 部分，注意这里仍然是一个 div.matrix-container
+
     matrix_html = '<div class="matrix-container"><table class="matrix">'
     for i in range(matrix.shape[0]):
         matrix_html += '<tr>'
@@ -57,4 +71,3 @@ def matrix_to_html(
     matrix_html += '</table></div>'
 
     return matrix_html
-

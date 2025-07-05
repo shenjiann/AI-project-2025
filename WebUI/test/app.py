@@ -1,100 +1,106 @@
-import asyncio
 from shiny import App, ui, render, reactive
-from shiny.session import get_current_session
-from pathlib import Path
+import numpy as np
+import torch
 
+# 卷积参数
+Z = torch.randint(-5, 6, (1, 1, 4, 4), dtype=torch.float32)
+W = torch.randint(-2, 3, (1, 1, 2, 2), dtype=torch.float32)
+dZ0 = torch.randint(-1, 2, (1, 1, 3, 3), dtype=torch.float32)
+dZ = torch.zeros_like(Z)
+
+stride = 1
+padding = 0
+
+# 当前步数和自动播放状态
+current_step = reactive.Value(0)
+auto_play = reactive.Value(False)
+
+def matrix_to_html(matrix: torch.Tensor, highlight=None, prefix="") -> str:
+    if highlight is None:
+        highlight = []
+    array = matrix[0, 0].detach().numpy()
+    html = '<table style="border-collapse: collapse;">'
+    for i in range(array.shape[0]):
+        html += "<tr>"
+        for j in range(array.shape[1]):
+            val = int(array[i, j])
+            style = "border: 1px solid black; width: 30px; height: 30px; text-align: center;"
+            if (i, j) in highlight:
+                style += " background-color: yellow;"
+            html += f'<td style="{style}">{val}</td>'
+        html += "</tr>"
+    html += "</table>"
+    return f'<div style="margin: 10px;">{prefix}{html}</div>'
+
+# UI
 app_ui = ui.page_fluid(
-    ui.include_css(Path(__file__).parent/"www/styles.css"),
-    ui.HTML((Path(__file__).parent / "www/mathjax_config.html").read_text(encoding="utf-8")),
-
-    ui.h2("HTML 和 MathJax 渲染示例"),
-    ui.hr(),
-
-    ui.h4("示例 1: 纯文本和行内公式"),
-    ui.output_ui("example1"),
-    ui.h4("示例 2: 块级公式"),
-    ui.output_ui("example2"),
-    ui.h4("示例 3: HTML 块级元素与公式"),
-    ui.output_ui("example3"),
-    ui.h4("示例 4: HTML 行内元素与公式"),
-    ui.output_ui("example4"),
-    ui.h4("示例 5: HTML 行内块级元素与公式"),
-    ui.output_ui("example5"),
+    ui.h3("反向传播中 dZ 的更新过程"),
+    ui.layout_sidebar(
+        ui.sidebar(
+            ui.input_action_button("next", "下一步"),
+            ui.input_action_button("start", "自动播放 ▶️"),
+            ui.input_action_button("stop", "停止 ⏸")
+        ),
+        ui.output_ui("dz0_display"),
+        ui.output_ui("dz_display")
+    )
 )
 
+# Server
 def server(input, output, session):
+    # 手动推进一步
+    @reactive.effect
+    @reactive.event(input.next)
+    def advance_once():
+        advance_step()
 
-    # MathJax 渲染逻辑
-    async def trigger_mathjax_render_on_client():
-        session = get_current_session()
-        await asyncio.sleep(0.001) # Give browser a moment to update DOM
-        await session.send_custom_message("render-mathjax", {})
+    # 自动播放控制
+    @reactive.effect
+    @reactive.event(input.start)
+    def _start():
+        auto_play.set(True)
 
     @reactive.effect
-    @reactive.event(input.session_initialized_client)
-    async def _initial_mathjax_render():
-        await trigger_mathjax_render_on_client()
+    @reactive.event(input.stop)
+    def _stop():
+        auto_play.set(False)
 
-    @render.ui
-    def example1():
-        # 纯文本和行内公式
-        return ui.HTML(r"""
-            <p>这是一段包含行内公式的文本：当 \(a \ne 0\), 则 \(ax^2 + bx + c = 0\) 的解为
-            \[x = {-b \pm \sqrt{b^2-4ac} \over 2a}.\]
-            这是公式后的文本。</p>
-        """)
+    # 自动播放动画机制
+    @reactive.effect
+    def auto_loop():
+        if auto_play() and current_step() < 2:
+            reactive.invalidate_later(2000)  # 提前设置等待 2 秒
+            advance_step()
+        elif current_step() >= 9:
+            auto_play.set(False)  # 自动停止
+            
+    def advance_step():
+        k = current_step()
+        if k < 9:
+            i = k // 3
+            j = k % 3
+            grad = dZ0[0, 0, i, j]
+            for m in range(2):
+                for n in range(2):
+                    dZ[0, 0, i + m, j + n] += W[0, 0, m, n] * grad
+            current_step.set(k + 1)
 
+    @output
     @render.ui
-    def example2():
-        # 块级公式
-        return ui.HTML(r"""
-            <p>下面的公式将单独占一行：</p>
-            \[ E=mc^2 \]
-            <p>这是公式后的文本。</p>
-        """)
+    def dz0_display():
+        k = current_step()
+        highlight = [(k // 3, k % 3)] if k < 9 else []
+        return ui.HTML(matrix_to_html(dZ0, highlight, prefix="dZ0："))
 
+    @output
     @render.ui
-    def example3():
-        # HTML 块级元素与公式
-        return ui.HTML(r"""
-            <div class="my-block-div">
-                这是一个 div 块。
-                其中包含一个行内公式：\(y = x^2\).
-            </div>
-            <p>另一个段落。</p>
-            <div class="my-block-div">
-                <p>内部的段落。</p>
-                <p>块级公式：</p>
-                \[ \sum_{i=1}^n i = \frac{n(n+1)}{2} \]
-            </div>
-        """)
-
-    @render.ui
-    def example4():
-        # HTML 行内元素与公式
-        return ui.HTML(r"""
-            <span>这是一个 span 行内元素。</span>
-            <span>行内公式：\( \int_a^b f(x) dx \).</span>
-            <span>另一个 span 元素。</span>
-            <p>这个段落后面的行内公式：\( \alpha + \beta \).</p>
-        """)
-
-    @render.ui
-    def example5():
-        # HTML 行内块级元素与公式
-        return ui.HTML(r"""
-            <div class="my-inline-block-div">
-                行内块级 div 1.
-                \( A \times B \)
-            </div>
-            <div class="my-inline-block-div">
-                行内块级 div 2.
-                \[ \nabla \cdot \mathbf{E} = \frac{\rho}{\epsilon_0} \]
-            </div>
-            <div class="my-inline-block-div">
-                行内块级 div 3.
-            </div>
-            <p>这是一个正常的段落，来观察上面 div 的布局。</p>
-        """)
+    def dz_display():
+        k = current_step()
+        if k == 0:
+            return ui.HTML(matrix_to_html(dZ, prefix="当前 dZ："))
+        i = (k - 1) // 3
+        j = (k - 1) % 3
+        updated = [(i + m, j + n) for m in range(2) for n in range(2)]
+        return ui.HTML(matrix_to_html(dZ, updated, prefix=f"dZ（更新来自 dZ0[{i},{j}]）"))
 
 app = App(app_ui, server)
