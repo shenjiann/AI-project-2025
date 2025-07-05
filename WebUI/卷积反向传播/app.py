@@ -2,7 +2,8 @@ import asyncio
 from shiny import App, ui, render, reactive
 from shiny.session import get_current_session
 from pathlib import Path
-from utility import matrix_to_html, pad_matrix, generate_data
+from utility import pad_matrix, generate_data, tensor2html
+from module import display_tensor_ui, display_tensor_server
 
 app_ui = ui.page_fluid(
     # 加载 CSS 和 MathJax 配置
@@ -25,6 +26,7 @@ app_ui = ui.page_fluid(
                 ui.input_slider('size', r'\( f^{[l]} \)', min=2, max=3, value=2, step=1),
                 r'\( d_C^{[l]} = 1\)',
             ),
+        # 主面板
         ui.output_ui('Z_display'),
         ui.output_ui('W_display'),
         ui.output_ui('Z0_display'),
@@ -36,19 +38,29 @@ app_ui = ui.page_fluid(
     ui.card(
         ui.card_header(r"输入梯度 \( dZ^{[l-1]} \)"),
         ui.layout_sidebar(
+            # 侧边栏
             ui.sidebar(
                 ui.input_action_button('dZnext', '下一步'),
+                ui.input_action_button('dZauto', '自动播放'),
                 ui.input_action_button('dZreset', '重置')
             ),
-            ui.output_ui("dZ_display")
+        display_tensor_ui('display_dZ'),
         ),
     ),
 
     # 卷积核梯度展示
     ui.card(
         ui.card_header(r"卷积核梯度 \( d W^{[l]} \)"),
-        ui.output_ui("dW_html"),
-    )
+        ui.layout_sidebar(
+            # 侧边栏
+            ui.sidebar(
+                ui.input_action_button('dWnext', '下一步'),
+                ui.input_action_button('dWauto', '自动播放'),
+                ui.input_action_button('dWreset', '重置')
+            ),
+        display_tensor_ui('display_dW'),
+        ),
+    ),
 )
 
 def server(input, output, session):
@@ -62,92 +74,67 @@ def server(input, output, session):
             f=input.size(),
             seed=42
         )
-    
-
-    @reactive.effect
-    def _():
-        # 基于input.height, input.width更新input.row_highlight, input.col_highlight的最大值
-        ui.update_slider(id='row_highlight', label='高亮行 (row)', min=1, max=input.height(), value=1, step=1)
-        ui.update_slider(id='col_highlight', label='高亮列 (column)', min=1, max=input.width(), value=1, step=1)
 
     @render.ui
     def Z_display():
-        Z, _, _, _, _, _ = data()
         parts = [
             '<div class="equation">',
             '<span class="equation-symbol">\\( Z^{[l-1]} = \\)</span>',
-            matrix_to_html(Z),
+            "\\( , \\)".join(tensor2html(data()['Z^{[l-1]}'])),
             '</div>'
         ]
         return ui.HTML("".join(parts))
     
     @render.ui
     def W_display():
-        _, W, _, _, _, _ = data()
         parts = [
             '<div class="equation">',
             '<span class="equation-symbol">\\( W^{[l]} = \\)</span>',
-            matrix_to_html(W),
+            "\\( , \\)".join(tensor2html(data()['W^{[l]}'])),
             '</div>'
         ]
         return ui.HTML("".join(parts))
     
     @render.ui
     def Z0_display():
-        _, _, Z0, _, _, _ = data()
         parts = [
             '<div class="equation">',
             '<span class="equation-symbol">\\( Z_0^{[l]} = \\)</span>',
-            matrix_to_html(Z0),
+            "\\( , \\)".join(tensor2html(data()['Z_0^{[l]}'])),
             '</div>'
         ]
         return ui.HTML("".join(parts))
 
     @render.ui
     def dZ0_display():
-        _, _, _, dZ0, _, _ = data()
         parts = [
             '<div class="equation">',
             '<span class="equation-symbol">\\( dZ^{[l]}_0 = \\)</span>',
-            matrix_to_html(dZ0),
+            "\\( , \\)".join(tensor2html(data()['dZ^{[l]}_0'])),
             '</div>'
         ]
         return ui.HTML("".join(parts))
 
     @render.ui
     def dZ_display():
-        _, W, _, dZ0, dZ, _ = data()
-        row = input.row_highlight() - 1
-        col = input.col_highlight() - 1
-        highlight_coords = [(row, col)]
-
         parts = [
             '<div class="equation">',
             '<span class="equation-symbol">\\( dZ^{[l-1]} = \\)</span>',
-            matrix_to_html(dZ, highlight=highlight_coords),
-            f'<span class="equation-symbol"> \\( = ({W[0,0,0,0]}) \\times \\)',
-            matrix_to_html(pad_matrix(dZ0, (0,1,0,1))),
-            f'<span class="equation-symbol"> \\( + ({W[0,0,0,1]}) \\times \\)',
-            matrix_to_html(pad_matrix(dZ0, (1,0,0,1))),
-            f'<span class="equation-symbol"> \\( + ({W[0,0,1,0]}) \\times \\)',
-            matrix_to_html(pad_matrix(dZ0, (0,1,1,0))),
-            f'<span class="equation-symbol"> \\( + ({W[0,0,1,1]}) \\times \\)',
-            matrix_to_html(pad_matrix(dZ0, (1,0,1,0))),
+            "\\( , \\)".join(tensor2html(data()['dZ^{[l-1]}'])),
             '</div>'
         ]
         return ui.HTML("".join(parts))
-        
+
     @render.ui
     def dW_display():
-        _, _, _, _, _, dW = data()
         parts = [
             '<div class="equation">',
-            '<span class="equation-symbol">\\( d W^{[l]} = \\)</span>',
-            matrix_to_html(dW),
+            '<span class="equation-symbol">\\( dW^{[l]} = \\)</span>',
+            "\\( , \\)".join(tensor2html(data()['dW^{[l]}'])),
             '</div>'
         ]
         return ui.HTML("".join(parts))
-    
+
     
     # --- MathJax 渲染逻辑 ---
     # 发送消息到客户端，触发 MathJax 渲染
@@ -182,4 +169,5 @@ def server(input, output, session):
             'src': Path(__file__).parent/"www/conv.png",
             'styles': "width: 100%; height: auto; max-width: 500px; margin: auto; display: block;"
         }
+
 app = App(app_ui, server)
