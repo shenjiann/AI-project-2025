@@ -25,6 +25,7 @@ app_ui = ui.page_fluid(
                 ui.input_slider('channel', r'\( d_C^{[l-1]} \)', min=1, max=2, value=1, step=1),
                 ui.input_slider('size', r'\( f^{[l]} \)', min=2, max=3, value=2, step=1),
                 r'\( d_C^{[l]} = 1\)',
+                ui.input_numeric("seed", "随机种子", 42),
             ),
         # 主面板
         display_tensor_ui('display_Z'),
@@ -72,7 +73,7 @@ def server(input, output, session):
             d_W=input.width(),
             d_C=input.channel(),
             f=input.size(),
-            seed=42
+            seed=input.seed()
         )
 
     display_tensor_server('display_Z', label='dZ^{[l-1]}', data_calc=data)
@@ -98,7 +99,7 @@ def server(input, output, session):
 
     # 监听滑块变化
     @reactive.effect
-    @reactive.event(input.height, input.width, input.channel, input.size)
+    @reactive.event(input.height, input.width, input.channel, input.size, input.seed)
     async def _slider_mathjax_render():
         await trigger_mathjax_render_on_client()
 
