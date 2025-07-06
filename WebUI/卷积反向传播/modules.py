@@ -1,5 +1,6 @@
 from shiny import module, ui, render
 from utility import tensor2html
+import torch
 
 # 自定义模块：张量展示
 @module.ui
@@ -10,17 +11,21 @@ def display_tensor_ui():
 def display_tensor_server(
     input, output, session, 
     label: str, 
-    data_calc, 
-    highlight_calc = None):
+    data, 
+    highlight = None):
     @render.ui
     def tensor_display():
-        tensor = data_calc()[label]
-        if callable(highlight_calc):
-            hl = highlight_calc()
-        elif highlight_calc is None:
+        if callable(data): # 对于reactive
+            tensor = data()[label]
+        elif isinstance(data, torch.Tensor): # 对于tensor
+            data_calc = data
+
+        if callable(highlight): # 对于reactive
+            hl = highlight()
+        elif highlight is None: # 对于None
             hl = []
-        else: 
-            hl = highlight_calc
+        else: # 对于list
+            hl = highlight
 
         parts = [
             '<div class="equation">',

@@ -27,44 +27,48 @@ app_ui = ui.page_fluid(
                 ui.output_ui("dims_l"),
                 ui.input_numeric("seed", "随机种子", 42),
             ),
-        # 主面板
-        display_tensor_ui('display_Z'),
-        display_tensor_ui('display_W'),
-        display_tensor_ui('display_Z0'),
-        display_tensor_ui('display_dZ0'),
+            # 主面板
+            display_tensor_ui('display_Z'),
+            display_tensor_ui('display_W'),
+            display_tensor_ui('display_Z0'),
+            display_tensor_ui('display_dZ0'),
         ),
     ),  
 
-    # --- 输入梯度展示 ---
-    ui.card(
-        ui.card_header(r"输入梯度 \( dZ^{[l-1]} \)"),
-        ui.layout_sidebar(
-            # 侧边栏
-            ui.sidebar(
-                ui.input_action_button('dZnext', '下一步'),
-                ui.input_action_button('dZauto', '自动播放'),
-                ui.input_action_button('dZreset', '重置')
+    ui.navset_card_tab(
+        # --- 输入梯度展示 ---
+        ui.nav_panel(r"输入梯度 \( dZ^{[l-1]} \)",
+            # 侧边栏布局
+            ui.layout_sidebar(
+                # 侧边栏
+                ui.sidebar(
+                    ui.input_action_button('dZnext', '下一步'),
+                    ui.input_action_button('dZauto', '自动播放'),
+                    ui.input_action_button('dZreset', '重置'),
+                ),
+                # 主面板
+                display_tensor_ui('display_dZ'),
+                ui.h6('计算过程：'),
+                ui.output_ui('steps'),
+                ui.output_ui('hl')
             ),
-        # 主面板
-        display_tensor_ui('display_dZ'),
-        ui.h6('计算过程：'),
-        ui.output_ui('steps'),
-        ui.output_ui('hl')
         ),
-    ),
 
-    # --- 卷积核梯度展示 ---
-    ui.card(
-        ui.card_header(r"卷积核梯度 \( d W^{[l]} \)"),
-        ui.layout_sidebar(
-            # 侧边栏
-            ui.sidebar(
-                ui.input_action_button('dWnext', '下一步'),
-                ui.input_action_button('dWauto', '自动播放'),
-                ui.input_action_button('dWreset', '重置')
+
+        # --- 卷积核梯度展示 ---
+        ui.nav_panel(r"卷积核梯度 \( d W^{[l]} \)", 
+            # 侧边栏布局
+            ui.layout_sidebar(
+                # 侧边栏
+                ui.sidebar(
+                    ui.input_action_button('dWnext', '下一步'),
+                    ui.input_action_button('dWauto', '自动播放'),
+                    ui.input_action_button('dWreset', '重置'),
+                ),
+                # 主面板
+                display_tensor_ui('display_dW'),
+                ui.h6('计算过程：'),
             ),
-        display_tensor_ui('display_dW'),
-        ui.h6('计算过程：'),
         ),
     ),
 )
@@ -95,18 +99,31 @@ def server(input, output, session):
             current_step_dZ.set(current_step_dZ() + 1)
 
     @reactive.calc
-    def highlight_dZ0():
+    def focus_coords():
         steps = current_step_dZ()
         tensor_shape = data()['Z0shape']
         return get_focus_coords(tensor_shape, steps)
 
-    @render.ui
+    @reactive.calc
+    def get_Z_slice_ij():
+        Z = data()['Z^{[l-1]}']
+        i, j = focus_coords()[0]
+        f = input.size()
+        return Z[..., i:(i+f), j:(j+f)]
+
+    display_tensor_server('display_Zslice', label='Z_{slice}^{[l-1]}', data=get_dZ_slice_ij())
+
+    @reactive.calc
+    def get_dZ_slice_ij():
+        pass
+
+    @render.ui # 监控steps
     def steps():
         return current_step_dZ()
     
-    @render.ui
+    @render.ui # 监控高亮坐标
     def hl():
-        return highlight_dZ0()
+        return focus_coords()
 
     # --- tensor展示 ---
     @render.ui
@@ -115,12 +132,12 @@ def server(input, output, session):
             fr"\(d_H^{{[l]}} = {data()['Z0shape'][3]},\ d_W^{{[l]}} = {data()['Z0shape'][2]},\ d_C^{{[l]}} = 1\)"
         )
     
-    display_tensor_server('display_Z', label='Z^{[l-1]}', data_calc=data)
-    display_tensor_server('display_W', label='W^{[l]}', data_calc=data)
-    display_tensor_server('display_Z0', label='Z_0^{[l]}', data_calc=data)
-    display_tensor_server('display_dZ0', label='dZ_0^{[l]}', data_calc=data, highlight_calc=highlight_dZ0)
-    display_tensor_server('display_dZ', label='dZ^{[l-1]}', data_calc=data)
-    display_tensor_server('display_dW', label='dW^{[l]}', data_calc=data)
+    display_tensor_server('display_Z', label='Z^{[l-1]}', data=data)
+    display_tensor_server('display_W', label='W^{[l]}', data=data)
+    display_tensor_server('display_Z0', label='Z_0^{[l]}', data=data)
+    display_tensor_server('display_dZ0', label='dZ_0^{[l]}', data=data, highlight=focus_coords)
+    display_tensor_server('display_dZ', label='dZ^{[l-1]}', data=data)
+    display_tensor_server('display_dW', label='dW^{[l]}', data=data)
 
     # --- MathJax 渲染逻辑 ---
     # 发送消息到客户端，触发 MathJax 渲染
