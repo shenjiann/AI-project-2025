@@ -14,7 +14,7 @@ app_ui = ui.page_fluid(
     # ui.output_image("threedep"),
     ui.panel_title("卷积层的反向传播"),
 
-    # 输入和卷积核设定
+    # --- 输入和卷积核设定 ---
     ui.card(
         ui.card_header(r"输入 \( Z^{[l-1]} \) 和卷积核 \(W\)设定"),
         ui.layout_sidebar(
@@ -35,7 +35,7 @@ app_ui = ui.page_fluid(
         ),
     ),  
 
-    # 输入梯度展示
+    # --- 输入梯度展示 ---
     ui.card(
         ui.card_header(r"输入梯度 \( dZ^{[l-1]} \)"),
         ui.layout_sidebar(
@@ -45,11 +45,12 @@ app_ui = ui.page_fluid(
                 ui.input_action_button('dZauto', '自动播放'),
                 ui.input_action_button('dZreset', '重置')
             ),
+        # 主面板
         display_tensor_ui('display_dZ'),
         ),
     ),
 
-    # 卷积核梯度展示
+    # --- 卷积核梯度展示 ---
     ui.card(
         ui.card_header(r"卷积核梯度 \( d W^{[l]} \)"),
         ui.layout_sidebar(
@@ -103,7 +104,7 @@ def server(input, output, session):
     async def _slider_mathjax_render():
         await trigger_mathjax_render_on_client()
 
-    # --- 顶部图片 ---
+    # --- 图片 ---
     @render.image
     def threedep():
         return {
