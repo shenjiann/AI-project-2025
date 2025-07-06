@@ -2,8 +2,9 @@ import asyncio
 from shiny import App, ui, render, reactive
 from shiny.session import get_current_session
 from pathlib import Path
-from utility import generate_data, tensor2html, get_focus_coords
+from utility import tensor2html
 from modules import display_tensor_ui, display_tensor_server
+from Data import Data
 
 app_ui = ui.page_fluid(
     # 加载 CSS 和 MathJax 配置
@@ -28,10 +29,10 @@ app_ui = ui.page_fluid(
                 ui.input_numeric("seed", "随机种子", 42),
             ),
             # 主面板
-            display_tensor_ui('display_Z'),
-            display_tensor_ui('display_W'),
-            display_tensor_ui('display_Z0'),
-            display_tensor_ui('display_dZ0'),
+            display_tensor_ui('Z_block'),
+            display_tensor_ui('W_block'),
+            display_tensor_ui('Z0_block'),
+            display_tensor_ui('dZ0_block'),
         ),
     ),  
 
@@ -47,7 +48,7 @@ app_ui = ui.page_fluid(
                     ui.input_action_button('dZreset', '重置'),
                 ),
                 # 主面板
-                display_tensor_ui('display_dZ'),
+                display_tensor_ui('dZ_block'),
                 ui.h6('计算过程：'),
                 ui.output_ui('steps'),
                 ui.output_ui('hl')
@@ -66,7 +67,7 @@ app_ui = ui.page_fluid(
                     ui.input_action_button('dWreset', '重置'),
                 ),
                 # 主面板
-                display_tensor_ui('display_dW'),
+                display_tensor_ui('dW_block'),
                 ui.h6('计算过程：'),
             ),
         ),
@@ -78,12 +79,12 @@ def server(input, output, session):
     # --- 数据生成 ---
     @reactive.calc
     def data():
-        return generate_data(
-            d_H=input.height(),
-            d_W=input.width(),
-            d_C=input.channel(),
-            f=input.size(),
-            seed=input.seed()
+        return Data(
+            d_H = input.height(),
+            d_W = input.width(),
+            d_C = input.channel(),
+            f = input.size(),
+            seed = input.seed()
         )
 
 
@@ -94,24 +95,23 @@ def server(input, output, session):
     @reactive.effect
     @reactive.event(input.dZnext)
     def _next_step_dZ():
-        elems_per_channel  = data()['Z0shape'][2] * data()['Z0shape'][3]
+        elems_per_channel  = data().d_H_l * data().d_W_l
         if current_step_dZ() < elems_per_channel:
             current_step_dZ.set(current_step_dZ() + 1)
 
     @reactive.calc
     def focus_coords():
         steps = current_step_dZ()
-        tensor_shape = data()['Z0shape']
-        return get_focus_coords(tensor_shape, steps)
+        return data().get_focus_coords(steps)
 
-    @reactive.calc
-    def get_Z_slice_ij():
-        Z = data()['Z^{[l-1]}']
-        i, j = focus_coords()[0]
-        f = input.size()
-        return Z[..., i:(i+f), j:(j+f)]
+    # @reactive.calc
+    # def get_Z_slice_ij():
+    #     Z = data()['Z^{[l-1]}']
+    #     i, j = focus_coords()[0]
+    #     f = input.size()
+    #     return Z[..., i:(i+f), j:(j+f)]
 
-    display_tensor_server('display_Zslice', label='Z_{slice}^{[l-1]}', data=get_dZ_slice_ij())
+    # display_tensor_server('display_Zslice', label='Z_{slice}^{[l-1]}', data=get_dZ_slice_ij())
 
     @reactive.calc
     def get_dZ_slice_ij():
@@ -129,15 +129,15 @@ def server(input, output, session):
     @render.ui
     def dims_l():
         return ui.HTML(
-            fr"\(d_H^{{[l]}} = {data()['Z0shape'][3]},\ d_W^{{[l]}} = {data()['Z0shape'][2]},\ d_C^{{[l]}} = 1\)"
+            fr"\(d_H^{{[l]}} = {data().d_H_l},\ d_W^{{[l]}} = {data().d_W_l},\ d_C^{{[l]}} = {data().d_C_l}\)"
         )
     
-    display_tensor_server('display_Z', label='Z^{[l-1]}', data=data)
-    display_tensor_server('display_W', label='W^{[l]}', data=data)
-    display_tensor_server('display_Z0', label='Z_0^{[l]}', data=data)
-    display_tensor_server('display_dZ0', label='dZ_0^{[l]}', data=data, highlight=focus_coords)
-    display_tensor_server('display_dZ', label='dZ^{[l-1]}', data=data)
-    display_tensor_server('display_dW', label='dW^{[l]}', data=data)
+    display_tensor_server('Z_block', label='Z^{[l-1]}', tensor=lambda: data().Z)
+    display_tensor_server('W_block', label='W^{[l]}', tensor=lambda: data().W)
+    display_tensor_server('Z0_block', label='Z_0^{[l]}', tensor=lambda: data().Z0)
+    display_tensor_server('dZ0_block', label='dZ_0^{[l]}', tensor=lambda: data().dZ0, highlight=lambda:data().get_focus_coords(current_step_dZ()))
+    display_tensor_server('dZ_block', label='dZ^{[l-1]}', tensor=lambda: data().dZ)
+    display_tensor_server('dW_block', label='dW^{[l]}', tensor=lambda: data().dW)
 
     # --- MathJax 渲染逻辑 ---
     # 发送消息到客户端，触发 MathJax 渲染

@@ -9,28 +9,29 @@ def display_tensor_ui():
 
 @module.server
 def display_tensor_server(
-    input, output, session, 
-    label: str, 
-    data, 
-    highlight = None):
+    input, output, session,
+    *,                 # 仅关键字参数，避免顺序歧义
+    label: str,
+    tensor,            # callable 或直接 tensor
+    highlight=None     # callable / list / None
+):
+    def _get_tensor():
+        return tensor() if callable(tensor) else tensor
+    def _get_highlight():
+        if callable(highlight):
+            return highlight()
+        return highlight or []
+
+    @output
     @render.ui
     def tensor_display():
-        if callable(data): # 对于reactive
-            tensor = data()[label]
-        elif isinstance(data, torch.Tensor): # 对于tensor
-            data_calc = data
-
-        if callable(highlight): # 对于reactive
-            hl = highlight()
-        elif highlight is None: # 对于None
-            hl = []
-        else: # 对于list
-            hl = highlight
+        t = _get_tensor()
+        hl = _get_highlight()
 
         parts = [
             '<div class="equation">',
             f'<span class="equation-symbol">\\( {label} = \\)</span>',
-            "\\( , \\)".join(tensor2html(tensor, hl)),
+            "\\( , \\)".join(tensor2html(t, hl)),
             '</div>'
         ]
         return ui.HTML("".join(parts))
