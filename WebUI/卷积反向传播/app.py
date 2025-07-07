@@ -51,7 +51,9 @@ app_ui = ui.page_fluid(
                 display_tensor_ui('dZ_block'),
                 ui.h6('计算过程：'),
                 ui.output_ui('steps'),
-                ui.output_ui('hl')
+                ui.output_ui('hl'),
+                display_tensor_ui('Zslice_block'),
+                ui.output_ui('Z0ij_block'),
             ),
         ),
 
@@ -99,31 +101,13 @@ def server(input, output, session):
         if current_step_dZ() < elems_per_channel:
             current_step_dZ.set(current_step_dZ() + 1)
 
-    @reactive.calc
-    def focus_coords():
-        steps = current_step_dZ()
-        return data().get_focus_coords(steps)
-
-    # @reactive.calc
-    # def get_Z_slice_ij():
-    #     Z = data()['Z^{[l-1]}']
-    #     i, j = focus_coords()[0]
-    #     f = input.size()
-    #     return Z[..., i:(i+f), j:(j+f)]
-
-    # display_tensor_server('display_Zslice', label='Z_{slice}^{[l-1]}', data=get_dZ_slice_ij())
-
-    @reactive.calc
-    def get_dZ_slice_ij():
-        pass
-
     @render.ui # 监控steps
     def steps():
         return current_step_dZ()
     
     @render.ui # 监控高亮坐标
     def hl():
-        return focus_coords()
+        return data().get_focus_coords(current_step_dZ())
 
     # --- tensor展示 ---
     @render.ui
@@ -132,12 +116,17 @@ def server(input, output, session):
             fr"\(d_H^{{[l]}} = {data().d_H_l},\ d_W^{{[l]}} = {data().d_W_l},\ d_C^{{[l]}} = {data().d_C_l}\)"
         )
     
-    display_tensor_server('Z_block', label='Z^{[l-1]}', tensor=lambda: data().Z)
-    display_tensor_server('W_block', label='W^{[l]}', tensor=lambda: data().W)
-    display_tensor_server('Z0_block', label='Z_0^{[l]}', tensor=lambda: data().Z0)
-    display_tensor_server('dZ0_block', label='dZ_0^{[l]}', tensor=lambda: data().dZ0, highlight=lambda:data().get_focus_coords(current_step_dZ()))
-    display_tensor_server('dZ_block', label='dZ^{[l-1]}', tensor=lambda: data().dZ)
-    display_tensor_server('dW_block', label='dW^{[l]}', tensor=lambda: data().dW)
+    display_tensor_server(id='Z_block', label='Z^{[l-1]}', tensor=lambda: data().Z)
+    display_tensor_server(id='W_block', label='W^{[l]}', tensor=lambda: data().W)
+    display_tensor_server(id='Z0_block', label='Z_0^{[l]}', tensor=lambda: data().Z0)
+    display_tensor_server(id='dZ0_block', label='dZ_0^{[l]}', tensor=lambda: data().dZ0, highlight=lambda:data().get_focus_coords(current_step_dZ()))
+    display_tensor_server(id='dZ_block', label='dZ^{[l-1]}', tensor=lambda: data().dZ)
+    display_tensor_server(id='dW_block', label='dW^{[l]}', tensor=lambda: data().dW)
+    
+    display_tensor_server(id='Zslice_block', label='Z_{slice,i,j}^{[l]}', tensor=lambda: data().get_Z_slice_ij(current_step_dZ()))
+    display_tensor_server(id='Z0ij_block', label='Z_{0,i,j}^{[l]}', tensor=lambda: data().get_Z0_ij(current_step_dZ()))
+    
+
 
     # --- MathJax 渲染逻辑 ---
     # 发送消息到客户端，触发 MathJax 渲染

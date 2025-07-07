@@ -9,9 +9,8 @@ def display_tensor_ui():
 
 @module.server
 def display_tensor_server(
-    input, output, session,
-    *,                 # 仅关键字参数，避免顺序歧义
-    label: str,
+    input, output, session, *,
+    label,
     tensor,            # callable 或直接 tensor
     highlight=None     # callable / list / None
 ):
@@ -26,6 +25,8 @@ def display_tensor_server(
     @render.ui
     def tensor_display():
         t = _get_tensor()
+        if t is None:
+            return ui.HTML('')
         hl = _get_highlight()
 
         parts = [

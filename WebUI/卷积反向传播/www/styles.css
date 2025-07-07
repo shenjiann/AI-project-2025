@@ -36,7 +36,6 @@
     border: 0px solid #eee; /* 矩阵元素边线 */
     padding: 1px 8px; /* 矩阵元素内边距 */
     text-align: center; 
-    /* text-align: flex-start; */
     font-family: "Times New Roman", Times, serif;
 }
 
@@ -44,13 +43,6 @@
 .matrix td.highlight {
     background-color: #ffe08a;
 }
-
-/* .matrix-row {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin: 2px;
-} */
 
 /* 公式内非矩阵元素 */
 .equation-symbol {
