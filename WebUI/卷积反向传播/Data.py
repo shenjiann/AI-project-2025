@@ -1,7 +1,7 @@
 import torch
 import torch.nn.functional as F
 from typing import Dict
-
+from shiny import reactive
 
 class Data:
     def __init__(self, d_H, d_W, d_C, f, seed):
@@ -28,15 +28,30 @@ class Data:
         self.d_H_l = self.Z0.shape[2]
         self.d_W_l = self.Z0.shape[3]
         self.d_C_l = 1
+
+        self._current_step_dZ = reactive.Value(0)
+        self._elems_per_chan = self.d_H_l * self.d_W_l
+
+    # dZ 计算相关方法
+    @property
+    def current_step_dZ(self):
+        return self._current_step_dZ.get()
     
-    def get_focus_ij(self, steps: int) -> list:
-        if steps == 0:
+    @current_step_dZ.setter
+    def current_step_dZ(self, value):
+        if value <= self._elems_per_chan:
+            self._current_step_dZ.set(value)
+        else:
+            pass
+
+    def get_focus_ij(self) -> list:
+        if self.current_step_dZ == 0:
             return []
-        elif steps > self.d_H_l * self.d_W_l:
+        elif self.current_step_dZ > self.d_H_l * self.d_W_l:
             return []
         else:
             elems_per_channel = self.d_H * self.d_W
-            idx = steps - 1
+            idx = self.current_step_dZ - 1
             in_channel_idx = idx % elems_per_channel
             c = idx // elems_per_channel
             i = in_channel_idx // self.d_W_l
@@ -44,29 +59,29 @@ class Data:
 
         return [(c, i, j)]
     
-    def get_focus_i(self, steps):
-        coords = self.get_focus_ij(steps)
+    def get_focus_i(self):
+        coords = self.get_focus_ij()
         if not coords:
             return None
         _, i, _ = coords[0]
         return i
 
-    def get_focus_j(self, steps):
-        coords = self.get_focus_ij(steps)
+    def get_focus_j(self):
+        coords = self.get_focus_ij()
         if not coords:
             return None
         _, _, j = coords[0]
         return j
 
-    def get_Z_slice_ij(self, steps):
-        coords = self.get_focus_ij(steps)
+    def get_Z_slice_ij(self):
+        coords = self.get_focus_ij()
         if not coords:
             return None
         _, i, j = coords[0]
         return self.Z[..., i:i + self.f, j:j + self.f]
     
-    def get_Z0_ij(self, steps):
-        coords = self.get_focus_ij(steps)
+    def get_Z0_ij(self):
+        coords = self.get_focus_ij()
         if not coords:
             return None
         _, i, j = coords[0]
