@@ -93,6 +93,22 @@ def server(input, output, session):
     # --- 输入梯度计算逻辑 ---
     current_step_dZ = reactive.Value(0)
 
+    @reactive.calc
+    def focus_i():
+        i = data().get_focus_i(current_step_dZ())
+        if not i:
+            return i + 1
+        else:
+            return None
+        
+    @reactive.calc
+    def focus_j():
+        j = data().get_focus_j(current_step_dZ())
+        if not j:
+            return j + 1
+        else: 
+            return None
+
         # 监测下一步
     @reactive.effect
     @reactive.event(input.dZnext)
@@ -107,7 +123,7 @@ def server(input, output, session):
     
     @render.ui # 监控高亮坐标
     def hl():
-        return data().get_focus_coords(current_step_dZ())
+        return data().get_focus_ij(current_step_dZ())
 
     # --- tensor展示 ---
     @render.ui
@@ -116,15 +132,47 @@ def server(input, output, session):
             fr"\(d_H^{{[l]}} = {data().d_H_l},\ d_W^{{[l]}} = {data().d_W_l},\ d_C^{{[l]}} = {data().d_C_l}\)"
         )
     
-    display_tensor_server(id='Z_block', label='Z^{[l-1]}', tensor=lambda: data().Z)
-    display_tensor_server(id='W_block', label='W^{[l]}', tensor=lambda: data().W)
-    display_tensor_server(id='Z0_block', label='Z_0^{[l]}', tensor=lambda: data().Z0)
-    display_tensor_server(id='dZ0_block', label='dZ_0^{[l]}', tensor=lambda: data().dZ0, highlight=lambda:data().get_focus_coords(current_step_dZ()))
-    display_tensor_server(id='dZ_block', label='dZ^{[l-1]}', tensor=lambda: data().dZ)
-    display_tensor_server(id='dW_block', label='dW^{[l]}', tensor=lambda: data().dW)
-    
-    display_tensor_server(id='Zslice_block', label='Z_{slice,i,j}^{[l]}', tensor=lambda: data().get_Z_slice_ij(current_step_dZ()))
-    display_tensor_server(id='Z0ij_block', label='Z_{0,i,j}^{[l]}', tensor=lambda: data().get_Z0_ij(current_step_dZ()))
+    display_tensor_server(
+        id='Z_block', 
+        label='Z^{[l-1]}', 
+        tensor=lambda: data().Z
+    )
+    display_tensor_server(
+        id='W_block', 
+        label='W^{[l]}', 
+        tensor=lambda: data().W
+    )
+    display_tensor_server(
+        id='Z0_block', 
+        label='Z_0^{[l]}', 
+        tensor=lambda: data().Z0
+    )
+    display_tensor_server(
+        id='dZ0_block', 
+        label='dZ_0^{[l]}', 
+        tensor=lambda: data().dZ0, 
+        highlight=lambda:data().get_focus_ij(current_step_dZ())
+    )
+    display_tensor_server(
+        id='dZ_block', 
+        label='dZ^{[l-1]}', 
+        tensor=lambda: data().dZ
+    )
+    display_tensor_server(
+        id='dW_block', 
+        label='dW^{[l]}', 
+        tensor=lambda: data().dW
+    )
+    display_tensor_server(
+        id='Zslice_block', 
+        label=lambda: f"Z_{{slice,{data().get_focus_i(current_step_dZ())+1},{data().get_focus_j(current_step_dZ())+1}}}^{{[l]}}",
+        tensor=lambda: data().get_Z_slice_ij(current_step_dZ())
+    )
+    display_tensor_server(
+        id='Z0ij_block', 
+        label='Z_{0,i,j}^{[l]}', 
+        tensor=lambda: data().get_Z0_ij(current_step_dZ())
+    )
     
 
 

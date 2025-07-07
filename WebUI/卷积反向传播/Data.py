@@ -2,6 +2,7 @@ import torch
 import torch.nn.functional as F
 from typing import Dict
 
+
 class Data:
     def __init__(self, d_H, d_W, d_C, f, seed):
         # 输入维度
@@ -28,7 +29,7 @@ class Data:
         self.d_W_l = self.Z0.shape[3]
         self.d_C_l = 1
     
-    def get_focus_coords(self, steps: int) -> tuple[int, int, int]:
+    def get_focus_ij(self, steps: int) -> list:
         if steps == 0:
             return []
         elif steps > self.d_H_l * self.d_W_l:
@@ -43,15 +44,29 @@ class Data:
 
         return [(c, i, j)]
     
+    def get_focus_i(self, steps):
+        coords = self.get_focus_ij(steps)
+        if not coords:
+            return None
+        _, i, _ = coords[0]
+        return i
+
+    def get_focus_j(self, steps):
+        coords = self.get_focus_ij(steps)
+        if not coords:
+            return None
+        _, _, j = coords[0]
+        return j
+
     def get_Z_slice_ij(self, steps):
-        coords = self.get_focus_coords(steps)
+        coords = self.get_focus_ij(steps)
         if not coords:
             return None
         _, i, j = coords[0]
         return self.Z[..., i:i + self.f, j:j + self.f]
     
     def get_Z0_ij(self, steps):
-        coords = self.get_focus_coords(steps)
+        coords = self.get_focus_ij(steps)
         if not coords:
             return None
         _, i, j = coords[0]

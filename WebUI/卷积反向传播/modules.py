@@ -14,24 +14,18 @@ def display_tensor_server(
     tensor,            # callable 或直接 tensor
     highlight=None     # callable / list / None
 ):
-    def _get_tensor():
-        return tensor() if callable(tensor) else tensor
-    def _get_highlight():
-        if callable(highlight):
-            return highlight()
-        return highlight or []
-
     @output
     @render.ui
     def tensor_display():
-        t = _get_tensor()
+        lbl = label() if callable(label) else label
+        t   = tensor() if callable(tensor) else tensor
         if t is None:
             return ui.HTML('')
-        hl = _get_highlight()
+        hl  = highlight() if callable(highlight) else (highlight or [])
 
         parts = [
             '<div class="equation">',
-            f'<span class="equation-symbol">\\( {label} = \\)</span>',
+            f'<span class="equation-symbol">\\( {lbl} = \\)</span>',
             "\\( , \\)".join(tensor2html(t, hl)),
             '</div>'
         ]
