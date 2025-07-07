@@ -48,12 +48,16 @@ app_ui = ui.page_fluid(
                     ui.input_action_button('dZreset', '重置'),
                 ),
                 # 主面板
-                display_tensor_ui('dZ_block'),
-                ui.h6('计算过程：'),
-                ui.output_ui('steps'),
-                ui.output_ui('hl'),
-                display_tensor_ui('Zslice_block'),
-                ui.output_ui('Z0ij_block'),
+                ui.TagList( # 使用 TagList 包裹可能条件渲染的部分
+                    display_tensor_ui('dZ_block'),
+                    ui.output_ui('dynamic_calculation_details') # 新增一个输出 UI
+                ),
+                # display_tensor_ui('dZ_block'),
+                # ui.h6('计算过程：'),
+                # ui.output_ui('steps'),
+                # ui.output_ui('hl'),
+                # display_tensor_ui('Zslice_block'),
+                # ui.output_ui('Z0ij_block'),
             ),
         ),
 
@@ -89,10 +93,7 @@ def server(input, output, session):
             seed = input.seed()
         )
 
-
-    # --- 输入梯度计算逻辑 ---
-    current_step_dZ = reactive.Value(0)
-
+    # --- dZ梯度计算逻辑 ---
     # 监测下一步
     @reactive.effect
     @reactive.event(input.dZnext)
@@ -112,7 +113,7 @@ def server(input, output, session):
     def hl():
         return data().get_focus_ij()
 
-    # --- tensor展示 ---
+    # --- 所有展示的公式 ---
     @render.ui
     def dims_l():
         return ui.HTML(
@@ -152,16 +153,28 @@ def server(input, output, session):
     )
     display_tensor_server(
         id='Zslice_block', 
-        label=lambda: f"Z_{{slice,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l]}}",
+        label=lambda: f"Z_{{slice,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l-1]}}",
         tensor=lambda: data().get_Z_slice_ij()
     )
     display_tensor_server(
         id='Z0ij_block', 
-        label='Z_{0,i,j}^{[l]}', 
+        label=lambda: f"Z_{{0,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l]}}",
         tensor=lambda: data().get_Z0_ij()
     )
     
-
+    @render.ui
+    def dynamic_calculation_details():
+        if data().current_step_dZ == 0: # 如果不展示细节
+            return ui.HTML('<div> 点击下一步查看计算过程 </div>') # 返回一个空的 div，或者 MathJax 的通用公式
+        
+        # 否则，展示所有计算过程相关的组件
+        return ui.TagList(
+            ui.h6('计算过程：'),
+            ui.output_ui('steps'),
+            ui.output_ui('hl'),
+            display_tensor_ui('Zslice_block'),
+            display_tensor_ui('Z0ij_block'),
+        )
 
     # --- MathJax 渲染逻辑 ---
     # 发送消息到客户端，触发 MathJax 渲染

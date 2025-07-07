@@ -78,11 +78,11 @@ class Data:
         if not coords:
             return None
         _, i, j = coords[0]
-        return self.Z[..., i:i + self.f, j:j + self.f]
+        return self.Z[:, :, i:i + self.f, j:j + self.f]
     
     def get_Z0_ij(self):
         coords = self.get_focus_ij()
         if not coords:
             return None
         _, i, j = coords[0]
-        return self.Z0[..., i, j]
+        return self.Z0[:, :, i:i+1, j:j+1]
