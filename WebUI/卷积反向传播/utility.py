@@ -19,7 +19,13 @@ def overlap_tensor2html(
     arr = tensor.detach().cpu().numpy()[0]
 
     for c in range(C):
-        offset_top = offset_left = c * shift_px if overlay else 0
+        if overlay:
+            # channel 0 放在最左下，其余向右上偏移
+            offset_top  = (C - 1 - c) * shift_px   # 越往后的 channel 越靠上
+            offset_left = c * shift_px             # 越往后的 channel 越靠右
+        else:
+            offset_top  = 0
+            offset_left = 0
 
         # Build table rows
         rows_html = []
@@ -36,7 +42,11 @@ def overlap_tensor2html(
             rows_html.append("<tr>" + "".join(tds) + "</tr>")
 
         if overlay:
-            style = f"position:absolute; top:{offset_top}px; left:{offset_left}px;"
+            z_index = C - c
+            style = (
+                f"position:absolute; top:{offset_top}px; left:{offset_left}px;"
+                f" z-index:{z_index};"
+            )
         else:
             style = f"display:inline-block; margin-right:{gap}px;"
 
