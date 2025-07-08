@@ -30,8 +30,9 @@ app_ui = ui.page_fluid(
                 ui.input_checkbox("overlay", "重叠显示", True),
             ),
             # 主面板
-            ui.output_ui("Z_display"),
-            ui.output_ui("W_display"),
+            display_tensor_ui('Z_display'),
+            display_tensor_ui('W_display'),
+            display_tensor_ui('dZ0_display'),
         ),
     ),  
 
@@ -48,6 +49,7 @@ app_ui = ui.page_fluid(
                 ),
                 # 主面板，条件渲染
                 ui.TagList( 
+                    display_tensor_ui('dZ_display'),
                     ui.output_ui('dynamic_calculation_details')
                 ),
             ),
@@ -111,37 +113,38 @@ def server(input, output, session):
             fr"\(d_H^{{[l]}} = {data().d_H_l},\ d_W^{{[l]}} = {data().d_W_l},\ d_C^{{[l]}} = {data().d_C_l}\)"
         )
     
-    @render.ui
-    def Z_display():
-        parts = [
-            '<div class="equation">',
-            f'<span class="equation-symbol">\\( Z = \\)</span>',
-            overlap_tensor2html(
-                data().Z,
-                overlay=input.overlay()),
-            '</div>'
-        ]
-        return ui.HTML("".join(parts))
-    
-    @render.ui
-    def W_display():
-        parts = [
-            '<div class="equation">',
-            f'<span class="equation-symbol">\\( W = \\)</span>',
-            overlap_tensor2html(
-                data().W,
-                overlay=input.overlay()),
-            '</div>'
-        ]
-        return ui.HTML("".join(parts))
-    
     display_tensor_server(
-        id='dZ0_display',
-        label=' \( dZ_0 \) ',
-        tensor=data().dZ0,
-        overlay=input.overlay()
+        id='Z_display',
+        label='Z^{[l]} = ',
+        tensor=lambda: data().Z,
+        overlay=lambda: input.overlay()
     )
     
+    display_tensor_server(
+        id='W_display',
+        label=' W^{[l]} = ',
+        tensor=lambda: data().W,
+        overlay=lambda: input.overlay()
+    )
+
+    display_tensor_server(
+        id='dZ0_display',
+        label=' dZ_0^{[l]} = ',
+        tensor=lambda: data().dZ0,
+        overlay=lambda: input.overlay()
+    )
+
+    display_tensor_server(
+        id='dZ_display',
+        label=' dZ^{[l-1]} = ',
+        tensor=lambda: data().dZ,
+        overlay=lambda: input.overlay()
+    )
+    
+    @render.ui
+    def dZ_calcs1():
+        pass
+
     @render.ui
     def dynamic_calculation_details():
         if data().current_step_dZ == 0:

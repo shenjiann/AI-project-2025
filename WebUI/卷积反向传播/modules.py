@@ -12,7 +12,7 @@ def display_tensor_server(
     input, output, session, *,
     label,
     tensor, # callable 或直接 tensor
-    overlay,
+    overlay=True,
     highlight=None # callable / list / None
 ):
     @output
@@ -20,16 +20,17 @@ def display_tensor_server(
     def tensor_display():
         lbl = label() if callable(label) else label
         t   = tensor() if callable(tensor) else tensor
+        overlay_val = overlay() if callable(overlay) else overlay
         if t is None:
             return ui.HTML('')
         hl  = highlight() if callable(highlight) else (highlight or [])
 
         parts = [
             '<div class="equation">',
-            f'<span class="equation-symbol">\\( {lbl} = \\)</span>',
+            f'<span class="equation-symbol">\\( {lbl} \\)</span>',
             overlap_tensor2html(
                 tensor=t,
-                overlay=overlay,
+                overlay=overlay_val,
                 highlight=hl),
             '</div>'
         ]
