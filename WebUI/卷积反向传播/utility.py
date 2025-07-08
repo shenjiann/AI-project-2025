@@ -12,8 +12,6 @@ def overlap_tensor2html(
     _, C, H, W = tensor.shape
     shift_px = 0.6*cell if overlay else 0
 
-    # Give the outer tensor‑vis div an explicit width/height when
-    # overlay=True so it has a real box height for flexbox centring.
     container_style = ""
     if overlay:
         total_shift      = shift_px * (C - 1)

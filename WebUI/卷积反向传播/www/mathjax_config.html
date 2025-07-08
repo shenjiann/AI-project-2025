@@ -41,3 +41,19 @@
     Shiny.setInputValue('session_initialized_client', true, {priority: "event"});
   });
 </script>
+
+<script>
+  document.addEventListener("click", function (evt) {
+    Shiny.setInputValue(
+      "page_click",
+      {
+        x: evt.clientX,
+        y: evt.clientY,
+        target: evt.target.id || evt.target.tagName,
+        time: Date.now()
+      },
+      { priority: "event" }  // 确保每次点击都触发
+    );
+  });
+</script>
+  
