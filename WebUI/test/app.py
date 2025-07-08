@@ -1,106 +1,141 @@
-from shiny import App, ui, render, reactive
+from shiny import App, ui, render
 import numpy as np
-import torch
 
-# 卷积参数
-Z = torch.randint(-5, 6, (1, 1, 4, 4), dtype=torch.float32)
-W = torch.randint(-2, 3, (1, 1, 2, 2), dtype=torch.float32)
-dZ0 = torch.randint(-1, 2, (1, 1, 3, 3), dtype=torch.float32)
-dZ = torch.zeros_like(Z)
+###############################################################################
+# 一些演示用的假数据 —— 三个 2×5 的 patch，及其相对位移（dy, dx，单位：格子，可为非整数）
+###############################################################################
+cell_px = 40  # 每个单元格的像素宽/高
+patches = [
+    dict(
+        matrix=np.arange(10).reshape(2, 5),
+        offset=(0, 0),        # 基准 patch
+        css_class="orange",
+    ),
+    dict(
+        matrix=np.array([[10, 11, 12, 13, 14],
+                         [15, 16, 17, 18, 19]]),
+        offset=(0.6, 0.6),        # 向下、向右各移 1.2, 0.6 格
+        css_class="blue",
+    ),
+]
 
-stride = 1
-padding = 0
+# ----- demo tensor for UI preview -----
+tensor_demo = np.stack([p["matrix"] for p in patches])  # shape (C,H,W)
+# --------------------------------------
 
-# 当前步数和自动播放状态
-current_step = reactive.Value(0)
-auto_play = reactive.Value(False)
+###############################################################################
+# 把上面数据转成一段完整的 HTML + 内联 CSS
+###############################################################################
+def overlapping_patches_to_html(
+    tensor: np.ndarray,
+    cell: int = 40,
+    overlay: bool = True,
+    highlight: list[tuple[int, int, int]] | None = None,
+) -> str:
+    """
+    Render a (C, H, W) or (N, C, H, W) tensor into HTML tables.
 
-def matrix_to_html(matrix: torch.Tensor, highlight=None, prefix="") -> str:
-    if highlight is None:
-        highlight = []
-    array = matrix[0, 0].detach().numpy()
-    html = '<table style="border-collapse: collapse;">'
-    for i in range(array.shape[0]):
-        html += "<tr>"
-        for j in range(array.shape[1]):
-            val = int(array[i, j])
-            style = "border: 1px solid black; width: 30px; height: 30px; text-align: center;"
-            if (i, j) in highlight:
-                style += " background-color: yellow;"
-            html += f'<td style="{style}">{val}</td>'
-        html += "</tr>"
-    html += "</table>"
-    return f'<div style="margin: 10px;">{prefix}{html}</div>'
+    Parameters
+    ----------
+    tensor
+        NumPy array with shape (C, H, W) **or** (N, C, H, W).  The leading
+        batch/patch dimension *N* is ignored (assumed 0/1).  `C` is the channel
+        count (1 or 2).
+    cell
+        Pixel size of each table cell (both width & height).
+    overlay
+        If True, channels are drawn on the same coordinate system with a small
+        offset (0 px for ch‑0, 0.6 × cell for ch‑1 …).  If False, channels are
+        placed side‑by‑side (`inline‑block`).
+    highlight
+        List of tuples ``(c, h, w)``.  Any cell whose **channel**, **row
+        (height index)**, and **column (width index)** matches will be colored
+        orange.
 
-# UI
+    Returns
+    -------
+    str
+        A chunk of HTML (including inline CSS) ready for `ui.HTML(...)`.
+    """
+    # Normalize shape → (C, H, W)
+    arr = np.asarray(tensor)
+    if arr.ndim == 4:       # (N, C, H, W) → use the first sample
+        arr = arr[0]
+    if arr.ndim != 3:
+        raise ValueError("tensor must have shape (C,H,W) or (N,C,H,W)")
+    C, H, W = arr.shape
+
+    highlight = set(highlight or [])
+
+    # --- CSS -----------------------------------------------------------------
+    css = f"""
+    <style>
+      .tensor-vis  {{ position:relative; }}
+      .patch       {{ border-collapse:collapse; }}
+      .patch td    {{ width:{cell}px; height:{cell}px;
+                      border:1px solid #000;
+                      text-align:center; vertical-align:middle; }}
+      /* Channel colours */
+      .ch0 td {{ background:rgb(220,240,255); }}  /* 淡蓝 */
+      .ch1 td {{ background:rgb(220,255,220); }}  /* 淡绿 */
+      /* Highlight */
+      .hl  {{ background:orange !important; }}
+    </style>
+    """
+
+    gap = cell // 3  # spacing when overlay=False
+    html_parts = ["<div class='tensor-vis'>"]
+
+    # Small shift for overlay view
+    shift_px = 0.6 * cell
+
+    for c in range(C):
+        offset_top = offset_left = c * shift_px if overlay else 0
+
+        # Build table rows
+        rows_html = []
+        for h in range(H):
+            tds = []
+            for w in range(W):
+                val = arr[c, h, w]
+                cell_str = "" if val is None else str(val)
+                cls = "hl" if (c, h, w) in highlight else ""
+                tds.append(f"<td class='{cls}'>{cell_str}</td>")
+            rows_html.append("<tr>" + "".join(tds) + "</tr>")
+
+        if overlay:
+            style = f"position:absolute; top:{offset_top}px; left:{offset_left}px;"
+        else:
+            style = f"position:static; display:inline-block; margin-right:{gap}px;"
+
+        table = (
+            f"<table class='patch ch{c}' style='{style}'>"
+            + "".join(rows_html) +
+            "</table>"
+        )
+        html_parts.append(table)
+
+    html_parts.append("</div>")
+    return css + "\n".join(html_parts)
+
+###############################################################################
+# Shiny UI & Server
+###############################################################################
 app_ui = ui.page_fluid(
-    ui.h3("反向传播中 dZ 的更新过程"),
-    ui.layout_sidebar(
-        ui.sidebar(
-            ui.input_action_button("next", "下一步"),
-            ui.input_action_button("start", "自动播放 ▶️"),
-            ui.input_action_button("stop", "停止 ⏸")
-        ),
-        ui.output_ui("dz0_display"),
-        ui.output_ui("dz_display")
-    )
+    ui.input_checkbox("overlay", "重叠显示", True),
+    ui.output_ui("tensor_vis"),
 )
 
-# Server
 def server(input, output, session):
-    # 手动推进一步
-    @reactive.effect
-    @reactive.event(input.next)
-    def advance_once():
-        advance_step()
-
-    # 自动播放控制
-    @reactive.effect
-    @reactive.event(input.start)
-    def _start():
-        auto_play.set(True)
-
-    @reactive.effect
-    @reactive.event(input.stop)
-    def _stop():
-        auto_play.set(False)
-
-    # 自动播放动画机制
-    @reactive.effect
-    def auto_loop():
-        if auto_play() and current_step() < 2:
-            reactive.invalidate_later(2000)  # 提前设置等待 2 秒
-            advance_step()
-        elif current_step() >= 9:
-            auto_play.set(False)  # 自动停止
-            
-    def advance_step():
-        k = current_step()
-        if k < 9:
-            i = k // 3
-            j = k % 3
-            grad = dZ0[0, 0, i, j]
-            for m in range(2):
-                for n in range(2):
-                    dZ[0, 0, i + m, j + n] += W[0, 0, m, n] * grad
-            current_step.set(k + 1)
-
-    @output
     @render.ui
-    def dz0_display():
-        k = current_step()
-        highlight = [(k // 3, k % 3)] if k < 9 else []
-        return ui.HTML(matrix_to_html(dZ0, highlight, prefix="dZ0："))
-
-    @output
-    @render.ui
-    def dz_display():
-        k = current_step()
-        if k == 0:
-            return ui.HTML(matrix_to_html(dZ, prefix="当前 dZ："))
-        i = (k - 1) // 3
-        j = (k - 1) % 3
-        updated = [(i + m, j + n) for m in range(2) for n in range(2)]
-        return ui.HTML(matrix_to_html(dZ, updated, prefix=f"dZ（更新来自 dZ0[{i},{j}]）"))
+    def tensor_vis():
+        return ui.HTML(
+            overlapping_patches_to_html(
+                tensor_demo,
+                cell_px,
+                overlay=input.overlay(),
+                highlight=[]
+            )
+        )
 
 app = App(app_ui, server)

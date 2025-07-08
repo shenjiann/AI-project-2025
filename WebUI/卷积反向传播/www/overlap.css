@@ -1,0 +1,31 @@
+.tensor-vis  { 
+    position:relative; 
+}
+
+.patch { 
+    border-collapse:collapse; 
+}
+
+.patch td {
+    width:30px; 
+    height:30px;
+    border:1px solid #000;
+    text-align:center; 
+    vertical-align:middle; 
+    font-family: "Times New Roman", Times, serif;
+    font-size: 0.75em;
+}
+
+/* Channel colours */
+.ch0 td { 
+    /* 淡蓝 */
+    background:rgb(220,240,255); 
+}  
+.ch1 td { 
+    /* 淡绿 */
+    background:rgb(220,255,220); 
+}  
+/* 高亮 */
+.hl  { 
+    background:orange !important; 
+}
