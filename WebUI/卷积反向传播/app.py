@@ -146,7 +146,7 @@ def server(input, output, session):
 
     # 监听输入变化
     @reactive.effect
-    @reactive.event(input.height, input.width, input.channel, input.size, input.seed, input.dZnext)
+    @reactive.event(input.height, input.width, input.channel, input.size, input.seed, input.dZnext, input.overlay)
     async def _slider_mathjax_render():
         await trigger_mathjax_render_on_client()
 

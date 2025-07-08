@@ -10,12 +10,23 @@ def overlap_tensor2html(
     cell = 30,
 ) -> str:
     _, C, H, W = tensor.shape
-    gap = cell // 3
     shift_px = 0.6*cell if overlay else 0
 
-    html_parts = [
-        f"<div class='tensor-vis'>"
-    ]
+    # Give the outer tensor‑vis div an explicit width/height when
+    # overlay=True so it has a real box height for flexbox centring.
+    container_style = ""
+    if overlay:
+        total_shift      = shift_px * (C - 1)
+        container_width  = W * cell + total_shift
+        container_height = H * cell + total_shift
+        container_style  = (
+            f"style='width:{container_width}px; "
+            f"height:{container_height}px;'"
+        )
+
+    html_parts = [f"<div class='tensor-vis' {container_style}>"]
+
+
     arr = tensor.detach().cpu().numpy()[0]
 
     for c in range(C):
@@ -48,6 +59,7 @@ def overlap_tensor2html(
                 f" z-index:{z_index};"
             )
         else:
+            gap = cell // 3  # spacing when overlay=False
             style = f"display:inline-block; margin-right:{gap}px;"
 
         html_parts.append(
