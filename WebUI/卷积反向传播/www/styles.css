@@ -1,47 +1,44 @@
-.matrix-container {
-    display: inline-block;
-    position: relative;
-    margin: 4px 6px;
-    vertical-align: middle;
+.tensor-vis  { 
+    position:relative; 
+    display:inline-block;
+    vertical-align:middle;
+    flex: 0 0 auto;
 }
 
-.matrix-container .matrix {
-    border-collapse: collapse;
-    position: relative;
+.patch { 
+    border-collapse:collapse; 
+    table-layout: fixed;
+    box-sizing: border-box;
 }
 
-/* 矩阵两侧中括号 */
-.matrix-container .matrix:before,
-.matrix-container .matrix:after {
-    content: "";
-    position: absolute;
-    top: 0;
-    height: 100%;
-    width: 6px;
-    border: 1.5px solid #000;
-}
-
-.matrix-container .matrix:before {
-    left: 0px;
-    border-right: none;
-}
-
-.matrix-container .matrix:after {
-    right: 0px;
-    border-left: none;
-}
-
-/* 矩阵元素 */
-.matrix td {
-    border: 0px solid #eee; /* 矩阵元素边线 */
-    padding: 1px 8px; /* 矩阵元素内边距 */
-    text-align: center; 
+.patch td {
+    width:40px; 
+    height:30px;
+    border:1px solid #999;
+    text-align:center; 
+    vertical-align:middle; 
     font-family: "Times New Roman", Times, serif;
+    font-size: 1em;
 }
 
-/* 矩阵内元素高亮 */
-.matrix td.highlight {
-    background-color: #ffe08a;
+/* Channel colours */
+.ch0 td { 
+    /* 淡蓝 */
+    background:rgb(224 , 244 , 255); 
+}  
+.ch1 td { 
+    /* 淡绿 */
+    background:rgb(232 , 255 , 232); 
+}  
+/* 高亮 */
+.hl  { 
+    background:orange !important; 
+}
+
+/* 公式整体 */
+.equation {
+    display:inline-block;
+    white-space:nowrap;
 }
 
 /* 公式内非矩阵元素 */
@@ -51,11 +48,7 @@
     display: inline-block;
 }
 
-/* 公式整体 */
-.equation {
-    display:inline-block;
-    white-space:nowrap;
-}
+
 
 /* 额外组件样式 */
 #threedep {
