@@ -1,5 +1,5 @@
 from shiny import module, ui, render
-from utility import tensor2html
+from utility import overlap_tensor2html
 import torch
 
 # 自定义模块：张量展示
@@ -11,8 +11,9 @@ def display_tensor_ui():
 def display_tensor_server(
     input, output, session, *,
     label,
-    tensor,            # callable 或直接 tensor
-    highlight=None     # callable / list / None
+    tensor, # callable 或直接 tensor
+    overlay,
+    highlight=None # callable / list / None
 ):
     @output
     @render.ui
@@ -26,7 +27,11 @@ def display_tensor_server(
         parts = [
             '<div class="equation">',
             f'<span class="equation-symbol">\\( {lbl} = \\)</span>',
-            "\\( , \\)".join(tensor2html(t, hl)),
+            overlap_tensor2html(
+                tensor=t,
+                overlay=overlay,
+                highlight=hl),
             '</div>'
         ]
+
         return ui.HTML("".join(parts))

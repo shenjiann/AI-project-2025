@@ -4,6 +4,7 @@ from shiny.session import get_current_session
 from pathlib import Path
 from utility import overlap_tensor2html
 from Data import Data
+from modules import display_tensor_ui, display_tensor_server
 
 app_ui = ui.page_fluid(
     # 加载 CSS 和 MathJax 配置
@@ -30,6 +31,7 @@ app_ui = ui.page_fluid(
             ),
             # 主面板
             ui.output_ui("Z_display"),
+            ui.output_ui("W_display"),
         ),
     ),  
 
@@ -120,6 +122,25 @@ def server(input, output, session):
             '</div>'
         ]
         return ui.HTML("".join(parts))
+    
+    @render.ui
+    def W_display():
+        parts = [
+            '<div class="equation">',
+            f'<span class="equation-symbol">\\( W = \\)</span>',
+            overlap_tensor2html(
+                data().W,
+                overlay=input.overlay()),
+            '</div>'
+        ]
+        return ui.HTML("".join(parts))
+    
+    display_tensor_server(
+        id='dZ0_display',
+        label=' \( dZ_0 \) ',
+        tensor=data().dZ0,
+        overlay=input.overlay()
+    )
     
     @render.ui
     def dynamic_calculation_details():
