@@ -28,6 +28,7 @@ app_ui = ui.page_fluid(
                 ui.output_ui("dims_l"),
                 ui.input_numeric("seed", "随机种子", 42),
                 ui.input_checkbox("overlay", "重叠显示", True),
+                class_="custom-sidebar",
             ),
             # 主面板
             display_tensor_ui('Z_display'),
@@ -47,6 +48,7 @@ app_ui = ui.page_fluid(
                     ui.input_action_button('dZnext', '下一步'),
                     ui.input_action_button('dZauto', '自动播放'),
                     ui.input_action_button('dZreset', '重置'),
+                    class_="custom-sidebar",
                 ),
                 # 主面板，条件渲染
                 ui.output_ui('dZ_calc_steps')
@@ -63,6 +65,7 @@ app_ui = ui.page_fluid(
                     ui.input_action_button('dWnext', '下一步'),
                     ui.input_action_button('dWauto', '自动播放'),
                     ui.input_action_button('dWreset', '重置'),
+                    class_="custom-sidebar",
                 ),
                 # 主面板
                 ui.h6('计算过程：'),

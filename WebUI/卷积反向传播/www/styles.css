@@ -55,3 +55,18 @@
 #conv {
     margin-bottom: -200px !important;
 }
+
+/* 控制侧边栏宽度 */
+.custom-sidebar {
+    min-width: 200px;
+    max-width: 220px;
+    width: 30vw; /* 使用相对于视口的单位 */
+}
+
+/* 针对小屏幕（手机）进行优化 */
+@media (max-width: 768px) {
+    .custom-sidebar {
+        width: 60vw;      /* 占用屏幕 60% */
+        max-width: 280px; /* 最大不超过 280px */
+    }
+}
