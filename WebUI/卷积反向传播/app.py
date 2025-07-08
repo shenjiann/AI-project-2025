@@ -2,9 +2,9 @@ import asyncio
 from shiny import App, ui, render, reactive
 from shiny.session import get_current_session
 from pathlib import Path
-from utility import tensor2html
-from modules import display_tensor_ui, display_tensor_server
+from utility import overlap_tensor2html
 from Data import Data
+from modules import display_tensor_ui, display_tensor_server
 
 app_ui = ui.page_fluid(
     # 加载 CSS 和 MathJax 配置
@@ -27,12 +27,12 @@ app_ui = ui.page_fluid(
                 ui.input_slider('size', r'\( f^{[l]} \)', min=2, max=3, value=2, step=1),
                 ui.output_ui("dims_l"),
                 ui.input_numeric("seed", "随机种子", 42),
+                ui.input_checkbox("overlay", "重叠显示", True),
             ),
             # 主面板
-            display_tensor_ui('Z_block'),
-            display_tensor_ui('W_block'),
-            display_tensor_ui('Z0_block'),
-            display_tensor_ui('dZ0_block'),
+            display_tensor_ui('Z_display'),
+            display_tensor_ui('W_display'),
+            display_tensor_ui('dZ0_display'),
         ),
     ),  
 
@@ -47,17 +47,11 @@ app_ui = ui.page_fluid(
                     ui.input_action_button('dZauto', '自动播放'),
                     ui.input_action_button('dZreset', '重置'),
                 ),
-                # 主面板
-                ui.TagList( # 使用 TagList 包裹可能条件渲染的部分
-                    display_tensor_ui('dZ_block'),
-                    ui.output_ui('dynamic_calculation_details') # 新增一个输出 UI
+                # 主面板，条件渲染
+                ui.TagList( 
+                    display_tensor_ui('dZ_display'),
+                    ui.output_ui('dynamic_calculation_details')
                 ),
-                # display_tensor_ui('dZ_block'),
-                # ui.h6('计算过程：'),
-                # ui.output_ui('steps'),
-                # ui.output_ui('hl'),
-                # display_tensor_ui('Zslice_block'),
-                # ui.output_ui('Z0ij_block'),
             ),
         ),
 
@@ -73,7 +67,6 @@ app_ui = ui.page_fluid(
                     ui.input_action_button('dWreset', '重置'),
                 ),
                 # 主面板
-                display_tensor_ui('dW_block'),
                 ui.h6('计算过程：'),
             ),
         ),
@@ -121,59 +114,45 @@ def server(input, output, session):
         )
     
     display_tensor_server(
-        id='Z_block', 
-        label='Z^{[l-1]}', 
-        tensor=lambda: data().Z
+        id='Z_display',
+        label='Z^{[l]} = ',
+        tensor=lambda: data().Z,
+        overlay=lambda: input.overlay()
     )
+    
     display_tensor_server(
-        id='W_block', 
-        label='W^{[l]}', 
-        tensor=lambda: data().W
+        id='W_display',
+        label=' W^{[l]} = ',
+        tensor=lambda: data().W,
+        overlay=lambda: input.overlay()
     )
+
     display_tensor_server(
-        id='Z0_block', 
-        label='Z_0^{[l]}', 
-        tensor=lambda: data().Z0
+        id='dZ0_display',
+        label=' dZ_0^{[l]} = ',
+        tensor=lambda: data().dZ0,
+        overlay=lambda: input.overlay()
     )
+
     display_tensor_server(
-        id='dZ0_block', 
-        label='dZ_0^{[l]}', 
-        tensor=lambda: data().dZ0, 
-        highlight=lambda:data().get_focus_ij()
-    )
-    display_tensor_server(
-        id='dZ_block', 
-        label='dZ^{[l-1]}', 
-        tensor=lambda: data().dZ
-    )
-    display_tensor_server(
-        id='dW_block', 
-        label='dW^{[l]}', 
-        tensor=lambda: data().dW
-    )
-    display_tensor_server(
-        id='Zslice_block', 
-        label=lambda: f"Z_{{slice,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l-1]}}",
-        tensor=lambda: data().get_Z_slice_ij()
-    )
-    display_tensor_server(
-        id='Z0ij_block', 
-        label=lambda: f"Z_{{0,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l]}}",
-        tensor=lambda: data().get_Z0_ij()
+        id='dZ_display',
+        label=' dZ^{[l-1]} = ',
+        tensor=lambda: data().dZ,
+        overlay=lambda: input.overlay()
     )
     
     @render.ui
+    def dZ_calcs1():
+        pass
+
+    @render.ui
     def dynamic_calculation_details():
-        if data().current_step_dZ == 0: # 如果不展示细节
-            return ui.HTML('<div> 点击下一步查看计算过程 </div>') # 返回一个空的 div，或者 MathJax 的通用公式
+        if data().current_step_dZ == 0:
+            return ui.HTML('<div> 点击下一步查看计算过程 </div>')
         
         # 否则，展示所有计算过程相关的组件
         return ui.TagList(
             ui.h6('计算过程：'),
-            ui.output_ui('steps'),
-            ui.output_ui('hl'),
-            display_tensor_ui('Zslice_block'),
-            display_tensor_ui('Z0ij_block'),
         )
 
     # --- MathJax 渲染逻辑 ---
@@ -191,7 +170,7 @@ def server(input, output, session):
 
     # 监听输入变化
     @reactive.effect
-    @reactive.event(input.height, input.width, input.channel, input.size, input.seed, input.dZnext)
+    @reactive.event(input.height, input.width, input.channel, input.size, input.seed, input.dZnext, input.overlay)
     async def _slider_mathjax_render():
         await trigger_mathjax_render_on_client()
 
