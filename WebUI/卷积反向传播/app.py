@@ -3,7 +3,9 @@ from shiny import App, ui, render, reactive
 from shiny.session import get_current_session
 from pathlib import Path
 from utility import overlap_tensor2html
-from WebUI.卷积反向传播.Data import Data, DZCalculator
+from Data import Data
+from DZCalculator import DZCalculator
+from DWCalculator import DWCalculator
 from modules import display_tensor_ui, display_tensor_server
 
 app_ui = ui.page_fluid(
@@ -53,9 +55,8 @@ app_ui = ui.page_fluid(
                 # 主面板，条件渲染
                 ui.output_ui('dZ_calc_steps')
             ),
+            value = 'dZ',
         ),
-
-
         # --- 卷积核梯度展示 ---
         ui.nav_panel(r"卷积核梯度 \( d W^{[l]} \)", 
             # 侧边栏布局
@@ -68,9 +69,11 @@ app_ui = ui.page_fluid(
                     class_="custom-sidebar",
                 ),
                 # 主面板
-                ui.h6('计算过程：'),
+                ui.output_ui('dW_calc_steps'),
             ),
+            value = 'dW'
         ),
+        id = 'nav_tab',
     ),
 )
 
@@ -87,40 +90,50 @@ def server(input, output, session):
             seed = input.seed()
         )
 
-    # --- DZCalculator 生成 ---
     @reactive.calc
     def dZcalc():
-        """创建 DZCalculator 实例，它依赖于 data()"""
         return DZCalculator(data())
+    
+    @reactive.calc
+    def dWcalc():
+        return DWCalculator(data())
     
     # --- dZ梯度计算逻辑 ---
     # 监测下一步
     @reactive.effect
     @reactive.event(input.dZnext)
     def _():
-            # 尝试增加 current_step_dZ，setter 会控制其最大值
-            dZcalc().current_step_dZ = dZcalc().current_step_dZ + 1
-            # 只有当最后一个切片尚未累加时，才执行累加逻辑
-            if dZcalc().current_step_dZ >= 1 and not dZcalc().last_slice_accumulated:
-                dZ_slice_val = dZcalc().get_dZ_slice_ij()
-                if dZ_slice_val is not None:
-                    dZcalc().add_to_dZ_cache(dZ_slice_val)
-            
+        # 尝试增加 current_step_dZ，setter 会控制其最大值
+        dZcalc().steps = dZcalc().steps + 1
+        # 只有当最后一个切片尚未累加时，才执行累加逻辑
+        if dZcalc().steps >= 1 and not dZcalc().last_slice_accumulated:
+            dZ_slice_val = dZcalc().get_dZ_slice_ij()
+            if dZ_slice_val is not None:
+                dZcalc().add_to_dZ_cache(dZ_slice_val)
 
+    @reactive.effect
+    @reactive.event(input.dWnext)
+    def _():
+        # 尝试增加 current_step_dZ，setter 会控制其最大值
+        dWcalc().steps = dWcalc().steps + 1
+        # 只有当最后一个切片尚未累加时，才执行累加逻辑
+        if dWcalc().steps >= 1 and not dWcalc().last_slice_accumulated:
+            dW_slice_val = dWcalc().get_dW_slice_ij()
+            if dW_slice_val is not None:
+                dWcalc().add_to_dW_cache(dW_slice_val)
+    
     @reactive.effect
     @reactive.event(input.dZreset)
     def _():
-        dZcalc().current_step_dZ = 0
+        dZcalc().steps = 0
         dZcalc().reset_dZ_cache() # 重置 dZ_cache
 
-    @render.ui # 监控steps
-    def steps():
-        return dZcalc().current_step_dZ
-    
-    
-    @render.ui # 监控高亮坐标
-    def hl():
-        return dZcalc().get_focus_ij()
+    @reactive.effect
+    @reactive.event(input.dWreset)
+    def _():
+        dWcalc().steps = 0
+        dWcalc().reset_dW_cache() # 重置 dZ_cache
+
 
     # --- 所有展示的公式 ---
     @render.ui
@@ -166,9 +179,18 @@ def server(input, output, session):
         tensor=lambda: data().dZ,
         overlay=lambda: input.overlay()
     )
+
+    display_tensor_server(
+        id='dW_display',
+        label=' dW^{[l]} = ',
+        tensor=lambda: data().dW,
+        overlay=lambda: input.overlay()
+    )
     
     @render.ui
     def dZ_calc_s1():
+        if input.nav_tab() != 'dZ':
+            return None
         parts = [
             '<div class="equation">',
             '注意到',
@@ -195,6 +217,8 @@ def server(input, output, session):
     
     @render.ui
     def dZ_calc_s2():
+        if input.nav_tab() != 'dZ':
+            return None
         parts = [
             '<div class="equation">',
             '<span class="equation-symbol">',
@@ -221,6 +245,8 @@ def server(input, output, session):
 
     @render.ui
     def dZ_calc_s3():
+        if input.nav_tab() != 'dZ':
+            return None
         parts = [
             '<div class="equation">',
             '<span class="equation-symbol"> \\( dZ_{cache}^{[l-1]} = \\) </span>',
@@ -229,7 +255,7 @@ def server(input, output, session):
                 overlay=input.overlay(),
                 highlight=dZcalc().get_highlight_Z()
             ),
-            '<span class="equation-symbol"> "+" </span>',
+            '<span class="equation-symbol"> + </span>',
             rf'\( dZ_{{slice,{dZcalc().get_focus_i()+1},{dZcalc().get_focus_j()+1}}}^{{[l-1]}} = \)',
             overlap_tensor2html(
                 tensor=dZcalc().dZ_cache,
@@ -243,7 +269,7 @@ def server(input, output, session):
 
     @render.ui
     def dZ_calc_steps():
-        if dZcalc().current_step_dZ == 0:
+        if dZcalc().steps == 0:
             return ui.TagList(
                 display_tensor_ui('dZ_display'),
                 ui.HTML('<div> 点击下一步查看计算过程 </div>')
@@ -254,6 +280,98 @@ def server(input, output, session):
                 ui.output_ui('dZ_calc_s2'),
                 ui.output_ui('dZ_calc_s3'),
             )
+        
+    # dW计算相关
+
+    @render.ui
+    def dW_calc_s1():
+        if input.nav_tab() != 'dW':
+            return None
+        parts = [
+            '<div class="equation">',
+            '注意到',
+            '<span class="equation-symbol">',
+            rf'\( Z_{{0,{dWcalc().get_focus_i()+1},{dWcalc().get_focus_j()+1}}}^{{[l]}} = \)', 
+            rf'\( Z_{{slice,{dWcalc().get_focus_i()+1},{dWcalc().get_focus_j()+1}}}^{{[l-1]}} \ast \)',
+            r'\( W = \) </span>',
+            overlap_tensor2html(
+                tensor=dWcalc().get_Z_slice_ij(),
+                overlay=input.overlay()),
+            r'<span class="equation-symbol"> \( \ast \) </span>',
+            overlap_tensor2html(
+                tensor=data().W,
+                overlay=input.overlay()
+            ),
+            r'<span class="equation-symbol"> \( = \) </span>',
+            overlap_tensor2html(
+                tensor=dWcalc().get_Z0_ij(),
+                overlay=input.overlay()
+            ),
+            '</div>'
+        ]
+        return ui.HTML("".join(parts))
+    
+    @render.ui
+    def dW_calc_s2():
+        if input.nav_tab() != 'dW':
+            return None
+        parts = [
+            '<div class="equation">',
+            '<span class="equation-symbol">',
+            rf'\( dW_{{slice,{dWcalc().get_focus_i()+1},{dWcalc().get_focus_j()+1}}}^{{[l]}} = dZ_{{0,{dWcalc().get_focus_i()+1},{dWcalc().get_focus_j()+1}}}^{{[l]}} \times Z_{{slice,{dWcalc().get_focus_i()+1},{dWcalc().get_focus_j()+1}}}^{{[l-1]}} = \) </span>',
+            overlap_tensor2html(
+                tensor=dWcalc().get_dZ0_ij(),
+                overlay=input.overlay()),
+            r'<span class="equation-symbol"> \( \times \) </span>',
+            overlap_tensor2html(
+                tensor=dWcalc().get_Z_slice_ij(),
+                overlay=input.overlay()),
+            r'<span class="equation-symbol"> \( = \) </span>',
+            overlap_tensor2html(
+                tensor=dWcalc().get_dW_slice_ij(),
+                overlay=input.overlay()),
+            '</div>'
+        ]
+        return ui.HTML("".join(parts))
+
+
+    @render.ui
+    def dW_calc_s3():
+        if input.nav_tab() != 'dW':
+            return None
+        parts = [
+            '<div class="equation">',
+            '<span class="equation-symbol"> \\( dW_{cache}^{[l]} = \\) </span>',
+            overlap_tensor2html(
+                tensor=dWcalc().dW_cache_last,
+                overlay=input.overlay(),
+                # highlight=dZcalc().get_highlight_Z()
+            ),
+            '<span class="equation-symbol"> + </span>',
+            rf'\( dW_{{slice,{dWcalc().get_focus_i()+1},{dWcalc().get_focus_j()+1}}}^{{[l]}} = \)',
+            overlap_tensor2html(
+                tensor=dWcalc().dW_cache,
+                overlay=input.overlay(),
+                # highlight=dWcalc().get_highlight_Z()
+            ),
+            '</div>',
+        ]
+        return ui.HTML("".join(parts))
+
+    @render.ui
+    def dW_calc_steps():
+        if dWcalc().steps == 0:
+            return ui.TagList(
+                display_tensor_ui('dW_display'),
+                ui.HTML('<div> 点击下一步查看计算过程 </div>')
+            )
+        else: # 否则，展示所有计算过程相关的组件
+            return ui.TagList(
+                ui.output_ui('dW_calc_s1'),
+                ui.output_ui('dW_calc_s2'),
+                ui.output_ui('dW_calc_s3'),
+            )
+            pass
 
 
 
