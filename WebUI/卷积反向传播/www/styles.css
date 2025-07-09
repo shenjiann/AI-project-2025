@@ -64,9 +64,15 @@
 }
 
 /* 针对小屏幕（手机）进行优化 */
+/* 控制移动端下展开的 sidebar 最大宽度 */
 @media (max-width: 768px) {
-    .custom-sidebar {
-        width: 40vw;      /* 占用屏幕 60% */
-        max-width: 280px; /* 最大不超过 280px */
-    }
+  .custom-sidebar.shiny-bound-input-panel {
+    max-width: 300px !important;   /* 设置你想要的宽度 */
+    width: 90vw !important;        /* 也可以是百分比 */
+    left: 0 !important;            /* 保持左侧贴边 */
+    right: auto !important;
+    overflow-y: auto;              /* 如果内容多，允许滚动 */
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3); /* 可选：添加阴影 */
+    background-color: white;      /* 可选：背景色 */
+  }
 }
