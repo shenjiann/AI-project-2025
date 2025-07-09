@@ -14,7 +14,7 @@ app_ui = ui.page_fluid(
     ui.HTML((Path(__file__).parent / "www/mathjax_config.html").read_text(encoding="utf-8")),
     
     # 顶部图片和标题
-    # ui.output_image("threedep"),
+    ui.output_image("threedep"),
     ui.panel_title("卷积层的反向传播"),
 
     # --- 输入和卷积核设定 ---
@@ -147,7 +147,7 @@ def server(input, output, session):
         label='Z^{[l-1]} = ',
         tensor=lambda: data().Z,
         overlay=lambda: input.overlay(),
-        highlight=lambda: dZcalc().get_highlight_Z(),
+        highlight=lambda: dZcalc().get_highlight_Z() if input.nav_tab() == 'dZ' else dWcalc().get_highlight_Z(),
     )
     
     display_tensor_server(
@@ -162,7 +162,7 @@ def server(input, output, session):
         label=' Z_0^{[l]} = ',
         tensor=lambda: data().Z0,
         overlay=lambda: input.overlay(),
-        highlight=lambda: dZcalc().get_highlight_Z0(),
+        highlight=lambda: dZcalc().get_highlight_Z0() if input.nav_tab() == 'dZ' else dWcalc().get_highlight_Z0(),
     )
 
     display_tensor_server(
@@ -170,7 +170,7 @@ def server(input, output, session):
         label=' dZ_0^{[l]} = ',
         tensor=lambda: data().dZ0,
         overlay=lambda: input.overlay(),
-        highlight=lambda: dZcalc().get_highlight_Z0(),
+        highlight=lambda: dZcalc().get_highlight_Z0() if input.nav_tab() == 'dZ' else dWcalc().get_highlight_Z0(),
     )
 
     display_tensor_server(

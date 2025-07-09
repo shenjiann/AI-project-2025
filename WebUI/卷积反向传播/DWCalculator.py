@@ -107,3 +107,23 @@ class DWCalculator():
         self._dW_cache_last.set(
             torch.zeros_like(self.data.W, dtype=torch.float32))
         self._last_slice_accumulated.set(False) # 重置标志位
+
+    def get_highlight_Z0(self):
+        coords = self.get_focus_ij()
+        if not coords:
+            return []
+        c, i, j = coords[0]
+        return [(self.data.d_C_l-1, i, j)]
+    
+    def get_highlight_Z(self):
+        coords = self.get_focus_ij()
+        if not coords:
+            return []
+        c, i, j = coords[0]
+        highlights = []
+        # 对所有 channel 逐个添加 (c, h, w) 坐标
+        for c_idx in range(self.data.d_C):
+            for di in range(self.data.f):
+                for dj in range(self.data.f):
+                    highlights.append((c_idx, i + di, j + dj))
+        return highlights
