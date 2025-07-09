@@ -3,7 +3,7 @@ from shiny import App, ui, render, reactive
 from shiny.session import get_current_session
 from pathlib import Path
 from utility import overlap_tensor2html
-from Data import Data
+from WebUI.卷积反向传播.Data import Data, DZCalculator
 from modules import display_tensor_ui, display_tensor_server
 
 app_ui = ui.page_fluid(
@@ -87,34 +87,40 @@ def server(input, output, session):
             seed = input.seed()
         )
 
+    # --- DZCalculator 生成 ---
+    @reactive.calc
+    def dZcalc():
+        """创建 DZCalculator 实例，它依赖于 data()"""
+        return DZCalculator(data())
+    
     # --- dZ梯度计算逻辑 ---
     # 监测下一步
     @reactive.effect
     @reactive.event(input.dZnext)
     def _():
             # 尝试增加 current_step_dZ，setter 会控制其最大值
-            data().current_step_dZ = data().current_step_dZ + 1
+            dZcalc().current_step_dZ = dZcalc().current_step_dZ + 1
             # 只有当最后一个切片尚未累加时，才执行累加逻辑
-            if data().current_step_dZ >= 1 and not data().last_slice_accumulated:
-                dZ_slice_val = data().get_dZ_slice_ij()
+            if dZcalc().current_step_dZ >= 1 and not dZcalc().last_slice_accumulated:
+                dZ_slice_val = dZcalc().get_dZ_slice_ij()
                 if dZ_slice_val is not None:
-                    data().add_to_dZ_cache(dZ_slice_val)
+                    dZcalc().add_to_dZ_cache(dZ_slice_val)
             
 
     @reactive.effect
     @reactive.event(input.dZreset)
     def _():
-        data().current_step_dZ = 0
-        data().reset_dZ_cache() # 重置 dZ_cache
+        dZcalc().current_step_dZ = 0
+        dZcalc().reset_dZ_cache() # 重置 dZ_cache
 
     @render.ui # 监控steps
     def steps():
-        return data().current_step_dZ
+        return dZcalc().current_step_dZ
     
     
     @render.ui # 监控高亮坐标
     def hl():
-        return data().get_focus_ij()
+        return dZcalc().get_focus_ij()
 
     # --- 所有展示的公式 ---
     @render.ui
@@ -128,7 +134,7 @@ def server(input, output, session):
         label='Z^{[l-1]} = ',
         tensor=lambda: data().Z,
         overlay=lambda: input.overlay(),
-        highlight=lambda: data().get_highlight_Z(),
+        highlight=lambda: dZcalc().get_highlight_Z(),
     )
     
     display_tensor_server(
@@ -143,7 +149,7 @@ def server(input, output, session):
         label=' Z_0^{[l]} = ',
         tensor=lambda: data().Z0,
         overlay=lambda: input.overlay(),
-        highlight=lambda: data().get_highlight_Z0(),
+        highlight=lambda: dZcalc().get_highlight_Z0(),
     )
 
     display_tensor_server(
@@ -151,7 +157,7 @@ def server(input, output, session):
         label=' dZ_0^{[l]} = ',
         tensor=lambda: data().dZ0,
         overlay=lambda: input.overlay(),
-        highlight=lambda: data().get_highlight_Z0(),
+        highlight=lambda: dZcalc().get_highlight_Z0(),
     )
 
     display_tensor_server(
@@ -167,11 +173,11 @@ def server(input, output, session):
             '<div class="equation">',
             '注意到',
             '<span class="equation-symbol">',
-            rf'\( Z_{{0,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l]}} = \)', 
-            rf'\( Z_{{slice,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l-1]}} \ast \)',
+            rf'\( Z_{{0,{dZcalc().get_focus_i()+1},{dZcalc().get_focus_j()+1}}}^{{[l]}} = \)', 
+            rf'\( Z_{{slice,{dZcalc().get_focus_i()+1},{dZcalc().get_focus_j()+1}}}^{{[l-1]}} \ast \)',
             r'\( W = \) </span>',
             overlap_tensor2html(
-                tensor=data().get_Z_slice_ij(),
+                tensor=dZcalc().get_Z_slice_ij(),
                 overlay=input.overlay()),
             r'<span class="equation-symbol"> \( \ast \) </span>',
             overlap_tensor2html(
@@ -180,7 +186,7 @@ def server(input, output, session):
             ),
             r'<span class="equation-symbol"> \( = \) </span>',
             overlap_tensor2html(
-                tensor=data().get_Z0_ij(),
+                tensor=dZcalc().get_Z0_ij(),
                 overlay=input.overlay()
             ),
             '</div>'
@@ -192,12 +198,12 @@ def server(input, output, session):
         parts = [
             '<div class="equation">',
             '<span class="equation-symbol">',
-            rf'\( dZ_{{slice,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l-1]}} = \)',
-            rf'\( dZ_{{0,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l]}} \times \)',
+            rf'\( dZ_{{slice,{dZcalc().get_focus_i()+1},{dZcalc().get_focus_j()+1}}}^{{[l-1]}} = \)',
+            rf'\( dZ_{{0,{dZcalc().get_focus_i()+1},{dZcalc().get_focus_j()+1}}}^{{[l]}} \times \)',
             r'\( W = \) </span>',
             '</span>',
             overlap_tensor2html(
-                tensor=data().get_dZ0_ij(),
+                tensor=dZcalc().get_dZ0_ij(),
                 overlay=input.overlay()),
             r'<span class="equation-symbol"> \( \times \) </span>',
             overlap_tensor2html(
@@ -206,7 +212,7 @@ def server(input, output, session):
             ),
             r'<span class="equation-symbol"> \( = \) </span>',
             overlap_tensor2html(
-                tensor=data().get_dZ_slice_ij(),
+                tensor=dZcalc().get_dZ_slice_ij(),
                 overlay=input.overlay()
             ),
             '</div>'
@@ -219,16 +225,16 @@ def server(input, output, session):
             '<div class="equation">',
             '<span class="equation-symbol"> \\( dZ_{cache}^{[l-1]} = \\) </span>',
             overlap_tensor2html(
-                tensor=data().dZ_cache_last,
+                tensor=dZcalc().dZ_cache_last,
                 overlay=input.overlay(),
-                highlight=data().get_highlight_Z()
+                highlight=dZcalc().get_highlight_Z()
             ),
             '<span class="equation-symbol"> "+" </span>',
-            rf'\( dZ_{{slice,{data().get_focus_i()+1},{data().get_focus_j()+1}}}^{{[l-1]}} = \)',
+            rf'\( dZ_{{slice,{dZcalc().get_focus_i()+1},{dZcalc().get_focus_j()+1}}}^{{[l-1]}} = \)',
             overlap_tensor2html(
-                tensor=data().dZ_cache,
+                tensor=dZcalc().dZ_cache,
                 overlay=input.overlay(),
-                highlight=data().get_highlight_Z()
+                highlight=dZcalc().get_highlight_Z()
             ),
             '</div>'
         ]
@@ -237,7 +243,7 @@ def server(input, output, session):
 
     @render.ui
     def dZ_calc_steps():
-        if data().current_step_dZ == 0:
+        if dZcalc().current_step_dZ == 0:
             return ui.TagList(
                 display_tensor_ui('dZ_display'),
                 ui.HTML('<div> 点击下一步查看计算过程 </div>')
