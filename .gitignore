@@ -5,3 +5,9 @@
 /WebUI/CIFAR/data
 WebUI/CIFAR/AlexNet.pth
 WebUI/CIFAR/models/AlexNet.pth
+ShinyApps/卷积层输出可视化/alexnet-owt-7be5be79.pth
+ShinyApps/卷积层输出可视化/models/alexnet-owt-7be5be79.pth
+ShinyApps/卷积层输出可视化/models/AlexNet.pth
+ShinyApps/卷积核效果可视化/__pycache__/app.cpython-312.pyc
+ShinyApps/卷积核效果可视化/__pycache__/utility.cpython-312.pyc
+ShinyApps/卷积层输出可视化/data/cifar-10-python.tar.gz

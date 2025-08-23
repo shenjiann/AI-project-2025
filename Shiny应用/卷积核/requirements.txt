@@ -1,4 +1,0 @@
-shiny      # Web UI 框架
-numpy      # 数值计算
-torch      # PyTorch：卷积 / 池化等张量运算
-Pillow     # 图像读取与 base64 编码（PIL）
