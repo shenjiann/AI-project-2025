@@ -4,3 +4,4 @@
 /data
 /WebUI/CIFAR/data
 WebUI/CIFAR/AlexNet.pth
+WebUI/CIFAR/models/AlexNet.pth
