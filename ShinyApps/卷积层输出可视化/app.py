@@ -54,23 +54,43 @@ app_ui = ui.page_fluid(
     ui.accordion(
         ui.accordion_panel(
             r"卷积层 1 特征图",
+            ui.output_plot("feat_conv1", height="400px"),
         ),
         ui.accordion_panel(
             r"卷积层 2 特征图",
+            ui.output_plot("feat_conv2", height="400px"),
         ),
         ui.accordion_panel(
             r"卷积层 3 特征图",
+            ui.output_plot("feat_conv3", height="400px"),
         ),
         ui.accordion_panel(
             r"卷积层 4 特征图",
+            ui.output_plot("feat_conv4", height="400px"),
         ),
         ui.accordion_panel(
             r"卷积层 5 特征图",
+            ui.output_plot("feat_conv5", height="400px"),
         ),
         id="acc",
         open=True,
     ),
-
+    ui.row(
+        ui.column(4, 
+            ui.input_select(
+                "pick_method", "代表性通道选择策略",
+                choices={
+                    "energy": "能量（默认）",
+                    "variance": "空间方差",
+                    "max": "最大响应",
+                    "sparse": "稀疏激活优先"
+                }, selected="energy"
+            )
+        ),
+        ui.column(4,
+            ui.input_slider("topk", "每层展示通道数", min=4, max=16, value=8, step=1)
+        ),
+    ),
 )
 
 
@@ -100,5 +120,46 @@ def server(input, output, session):
         which = input.which_conv()
         w = pick_conv_weights(which)
         return plot_weight_hist(w, bins=100)
+    
+    @reactive.Calc
+    def _grids():
+        cls = input.cls()
+        k = int(input.idx()) - 1
+        method = input.pick_method()
+        topk = int(input.topk())
+        x = load_sample_tensor(cls, k)
+        grids = build_layer_grids(model, x, topk_per_layer=topk, method=method)
+        return grids
+
+    # --- 每层输出 ---
+    @render.plot
+    def feat_conv1():
+        g = _grids()
+        fig, meta = g["conv1"]
+        return fig
+
+    @render.plot
+    def feat_conv2():
+        g = _grids()
+        fig, meta = g["conv2"]
+        return fig
+
+    @render.plot
+    def feat_conv3():
+        g = _grids()
+        fig, meta = g["conv3"]
+        return fig
+
+    @render.plot
+    def feat_conv4():
+        g = _grids()
+        fig, meta = g["conv4"]
+        return fig
+
+    @render.plot
+    def feat_conv5():
+        g = _grids()
+        fig, meta = g["conv5"]
+        return fig
 
 app = App(app_ui, server)
