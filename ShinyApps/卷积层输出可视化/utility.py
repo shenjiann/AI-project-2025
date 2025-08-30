@@ -1,4 +1,5 @@
 import numpy as np
+import json, hashlib
 import matplotlib.pyplot as plt
 from pathlib import Path
 from PIL import Image
@@ -6,14 +7,99 @@ import torch
 import torch.nn.functional as F
 from torchvision import transforms as T
 from models.AlexNet import AlexNet
+from collections import OrderedDict
 
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 APP_DIR = Path(__file__).parent
 SAMPLES_DIR = APP_DIR / "www" / "cifar10_samples"
 MODELS_DIR = APP_DIR / "models"
 
+# 加载模型
 model = AlexNet(num_classes=10)
 state = torch.load(MODELS_DIR/'AlexNet.pth', map_location="cpu")
+
+
+def _sha256_tensor(t: torch.Tensor) -> str:
+    b = t.detach().cpu().contiguous().numpy().tobytes()
+    return hashlib.sha256(b).hexdigest()
+
+def load_alexnet_state_lossless(MODELS_DIR: Path) -> "OrderedDict[str, torch.Tensor]":
+    full_path = MODELS_DIR / "AlexNet.pth"
+    if full_path.exists():
+        st = torch.load(full_path, map_location="cpu")
+        return OrderedDict(st.items()) if not isinstance(st, OrderedDict) else st
+
+    shards_dir = MODELS_DIR / "alexnet_shards"
+    index_path = shards_dir / "alexnet-index.json"
+    if not index_path.exists():
+        raise FileNotFoundError(f"缺少模型文件：{full_path}，且找不到分片索引：{index_path}")
+
+    index = json.loads(index_path.read_text(encoding="utf-8"))
+    verify = bool(index.get("verify_hash") or index.get("verify", False))
+    keys_meta = index["keys_meta"]
+    shards_meta = index["shards"]
+
+    # 先把所有分片加载进来（保持分片内键顺序）
+    loaded_parts = {}
+    for sh in shards_meta:
+        part_path = shards_dir / sh["file"]
+        if not part_path.exists():
+            raise FileNotFoundError(f"缺少分片：{part_path}")
+        d = torch.load(part_path, map_location="cpu")
+        if not isinstance(d, OrderedDict):
+            d = OrderedDict(d.items())
+        loaded_parts[sh["file"]] = d
+
+    merged = OrderedDict()
+
+    # 重建每个原始键
+    for k, meta in keys_meta.items():
+        dtype_str = meta["dtype"]
+        shape     = tuple(meta["shape"])
+        parts     = meta["parts"]
+        is_split  = bool(meta.get("is_split", False))
+        # 收集该键的所有片段
+        tensors = []
+        for p in parts:
+            # 在所有分片中查找对应键（按 index 的顺序匹配）
+            keyp = p["key"]
+            found = None
+            for sh in shards_meta:
+                d = loaded_parts[sh["file"]]
+                if keyp in d:
+                    found = d[keyp]
+                    break
+            if found is None:
+                raise KeyError(f"未找到分片键：{keyp}")
+            t = found
+            if verify and "sha256" in p:
+                if _sha256_tensor(t) != p["sha256"]:
+                    raise ValueError(f"哈希不一致，分片可能损坏：{keyp}")
+            tensors.append(t)
+
+        if not is_split:
+            # 正常键只会有一个部分
+            t = tensors[0]
+            # 校验 dtype/shape
+            if str(t.dtype) != dtype_str or tuple(t.shape) != shape:
+                raise ValueError(f"键 {k} 的 dtype/shape 不匹配：got {t.dtype},{tuple(t.shape)} vs {dtype_str},{shape}")
+            merged[k] = t
+        else:
+            # 需要把多个块拼回去
+            # 分两种：沿第0维拼接；或之前退化到扁平切片（用 flat_shape_restore）
+            if "flat_shape_restore" in meta:
+                flat = torch.cat([ti.view(-1) for ti in tensors], dim=0)
+                t = flat.view(*meta["flat_shape_restore"]).contiguous()
+            else:
+                t = torch.cat(tensors, dim=0).contiguous()
+            # 校验
+            if str(t.dtype) != dtype_str or tuple(t.shape) != shape:
+                raise ValueError(f"键 {k} 复原后 dtype/shape 不匹配：got {t.dtype},{tuple(t.shape)} vs {dtype_str},{shape}")
+            merged[k] = t
+
+    return merged
+
+state = load_alexnet_state_lossless(MODELS_DIR)
 model.load_state_dict(state)
 model.eval()
 conv_layers = {
@@ -24,6 +110,7 @@ conv_layers = {
     "conv5": model.features[12],
 }
 
+# 权重直方图
 def plot_weight_hist(w, bins=60, xlim=None):
     w = np.asarray(w).ravel()
     mu, sd = float(np.mean(w)), float(np.std(w))

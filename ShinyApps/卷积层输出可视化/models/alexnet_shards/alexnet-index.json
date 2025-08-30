@@ -1,0 +1,287 @@
+{
+  "format": "sharded_state_dict_v2",
+  "prefix": "alexnet",
+  "shard_mb": 70,
+  "verify_hash": true,
+  "num_shards": 4,
+  "keys_meta": {
+    "features.0.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        96,
+        3,
+        11,
+        11
+      ],
+      "parts": [
+        {
+          "key": "features.0.weight",
+          "sha256": "4cccb7120c344a72901c727917fac856effd8382e4980a833a4be2863c9708fa"
+        }
+      ],
+      "is_split": false
+    },
+    "features.0.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        96
+      ],
+      "parts": [
+        {
+          "key": "features.0.bias",
+          "sha256": "21bc5d043badeeb85427b087bb4ecdaf57a3e62c74cf08044799ef6896d83707"
+        }
+      ],
+      "is_split": false
+    },
+    "features.4.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        96,
+        5,
+        5
+      ],
+      "parts": [
+        {
+          "key": "features.4.weight",
+          "sha256": "473d7df9eebe04f352498649dc4ae37c722dc5efd226ea6bd993ad133137e2c3"
+        }
+      ],
+      "is_split": false
+    },
+    "features.4.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ],
+      "parts": [
+        {
+          "key": "features.4.bias",
+          "sha256": "007f5b2bbdc32ae7f6f835917f5bb5107b436afeec579f35ae6e43364f7cabdd"
+        }
+      ],
+      "is_split": false
+    },
+    "features.8.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        384,
+        256,
+        3,
+        3
+      ],
+      "parts": [
+        {
+          "key": "features.8.weight",
+          "sha256": "ce9bd1f2402fe6b5b3d5da06e25a129110a31fbdaacfb2a83835028175b81e7a"
+        }
+      ],
+      "is_split": false
+    },
+    "features.8.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        384
+      ],
+      "parts": [
+        {
+          "key": "features.8.bias",
+          "sha256": "57c2d0fdce83af98cdcb1917d5e31f408ef8d8fb6dc8de387914f89a92b1de7f"
+        }
+      ],
+      "is_split": false
+    },
+    "features.10.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        384,
+        384,
+        3,
+        3
+      ],
+      "parts": [
+        {
+          "key": "features.10.weight",
+          "sha256": "0258136f049d22838ed1391e9de09d00f276a10d88ee5cb2933a0d0e734625c5"
+        }
+      ],
+      "is_split": false
+    },
+    "features.10.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        384
+      ],
+      "parts": [
+        {
+          "key": "features.10.bias",
+          "sha256": "dac1babfea6a07e9d6f81c817daceb5125f5fc19ae7efcc17fcd8ea57509b911"
+        }
+      ],
+      "is_split": false
+    },
+    "features.12.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        256,
+        384,
+        3,
+        3
+      ],
+      "parts": [
+        {
+          "key": "features.12.weight",
+          "sha256": "b51c6596f24f772708a1736b62bfd05208ccce6d0b87ae3f4ede205ef01d68db"
+        }
+      ],
+      "is_split": false
+    },
+    "features.12.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        256
+      ],
+      "parts": [
+        {
+          "key": "features.12.bias",
+          "sha256": "59eead0f14616e8069780ff16efb81107e8ce6ee651f00b36b1177add8b617dd"
+        }
+      ],
+      "is_split": false
+    },
+    "classifier.1.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        4096,
+        9216
+      ],
+      "parts": [
+        {
+          "key": "classifier.1.weight|part0000",
+          "sha256": "d48c6615958de8a4b4532f1c81771c82af86648d85b72ec1c9bee8e772522661"
+        },
+        {
+          "key": "classifier.1.weight|part0001",
+          "sha256": "c3a7a769e8908972e8839093b1bda4a2217be91338689b3c903eb93461d49bf9"
+        },
+        {
+          "key": "classifier.1.weight|part0002",
+          "sha256": "a5407882282eb2d8ff335b22860d35388b91cd68b4b83b5303b1a510320ab2d7"
+        }
+      ],
+      "is_split": true,
+      "flat_shape_restore": [
+        4096,
+        9216
+      ]
+    },
+    "classifier.1.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        4096
+      ],
+      "parts": [
+        {
+          "key": "classifier.1.bias",
+          "sha256": "475ca0b669fd18f8e820d2d550763cebb92372b6497c863104b2b39b80dfa351"
+        }
+      ],
+      "is_split": false
+    },
+    "classifier.4.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        4096,
+        4096
+      ],
+      "parts": [
+        {
+          "key": "classifier.4.weight",
+          "sha256": "72dc865ddd47281eb11b135f779424f44d73be00e32ab2a87a9539f361164eab"
+        }
+      ],
+      "is_split": false
+    },
+    "classifier.4.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        4096
+      ],
+      "parts": [
+        {
+          "key": "classifier.4.bias",
+          "sha256": "e4fd5b97f2a3c9a1b2dbbf81a47a8416e15a7b766d127b6727e99a473f9818ad"
+        }
+      ],
+      "is_split": false
+    },
+    "classifier.6.weight": {
+      "dtype": "torch.float32",
+      "shape": [
+        10,
+        4096
+      ],
+      "parts": [
+        {
+          "key": "classifier.6.weight",
+          "sha256": "e3c1c038518046e83b7dfd8ed8f5a7a8e1d74fbfbd646e245ab697095baa6b86"
+        }
+      ],
+      "is_split": false
+    },
+    "classifier.6.bias": {
+      "dtype": "torch.float32",
+      "shape": [
+        10
+      ],
+      "parts": [
+        {
+          "key": "classifier.6.bias",
+          "sha256": "28cebec55b7d32f1923461c535523e1d7ce58146c3f0c68269da44143d465a99"
+        }
+      ],
+      "is_split": false
+    }
+  },
+  "shards": [
+    {
+      "file": "alexnet-0000.pth",
+      "keys": [
+        "features.0.weight",
+        "features.0.bias",
+        "features.4.weight",
+        "features.4.bias",
+        "features.8.weight",
+        "features.8.bias",
+        "features.10.weight",
+        "features.10.bias",
+        "features.12.weight",
+        "features.12.bias"
+      ]
+    },
+    {
+      "file": "alexnet-0001.pth",
+      "keys": [
+        "classifier.1.weight|part0000"
+      ]
+    },
+    {
+      "file": "alexnet-0002.pth",
+      "keys": [
+        "classifier.1.weight|part0001"
+      ]
+    },
+    {
+      "file": "alexnet-0003.pth",
+      "keys": [
+        "classifier.1.weight|part0002",
+        "classifier.1.bias",
+        "classifier.4.weight",
+        "classifier.4.bias",
+        "classifier.6.weight",
+        "classifier.6.bias"
+      ]
+    }
+  ]
+}
