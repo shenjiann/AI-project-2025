@@ -1,0 +1,32 @@
+/* 标题图片样式 */
+#threedep {
+    margin-bottom: -300px !important;
+}
+
+/* 输出向量圆点样式 */
+.dot-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--gap, 4px);
+    padding: var(--pad, 4px);
+}
+
+.dot {
+    display: inline-block;
+    border-radius: 50%;
+    box-shadow: 0 0 0 1px rgba(0,0,0,.2) inset, 0 1px 2px rgba(0,0,0,.12);
+}
+
+/* 仅用于“横向滚动的一行点” */
+.dot-strip {
+    display: flex;
+    flex-wrap: nowrap;             /* 不换行，挤不下就横向滚动 */
+    align-items: center;
+    gap: var(--gap, 4px);
+    padding: var(--pad, 4px);
+    overflow-x: auto;              /* 开启横向滚动 */
+    overflow-y: hidden;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch; /* 移动端更顺滑 */
+}

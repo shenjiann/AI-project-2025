@@ -344,7 +344,7 @@ if __name__ == "__main__":
     )
 
     # 随机挑选一张本地样本图
-    img_path, class_name = pick_random_local_image(SAMPLES_DIR)
+    img_path, class_name = pick_random_local_image(SAMPLES_DIR, 43)
     print(f"Picked sample: {img_path} (class: {class_name})")
 
     # 读取并变换
