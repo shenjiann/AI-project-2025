@@ -100,33 +100,31 @@ def vector_to_html_dots(vec, width_px=14, gap_px=4, pad_px=4, scroll=False):
     )
     return html
 
+def plot_weight_hist_simple(w, bins=60, xlim=None):
+    """期刊风的单色直方图；若你已有 plot_weight_hist 也可继续用这个以统一坐标。"""
+    w = np.asarray(w).ravel()
+    mu, sd = float(np.mean(w)), float(np.std(w))
 
-def plot_weight_hist(w, title="Weights Histogram", bins=60):
-    fig, ax = plt.subplots(figsize=(5.6, 3.2), dpi=160)
-    ax.hist(w.ravel(), bins=bins, alpha=0.8, color="steelblue", label=f"W {tuple(w.shape)}")
-    ax.set_title(title)
-    ax.set_xlabel("Weight Value")
+    fig, ax = plt.subplots(figsize=(5.6, 3.2))
+    ax.hist(w, bins=bins, histtype="stepfilled",
+            edgecolor="black", linewidth=1.0,
+            facecolor="0.85", alpha=1.0)
+    ax.axvline(0, color="0.25", lw=0.8, ls="--")
+    ax.text(0.98, 0.95, f"μ = {mu:.3g} \n σ = {sd:.3g}", transform=ax.transAxes,
+            ha="right", va="top")
+    ax.set_xlabel("Weight")
     ax.set_ylabel("Count")
-    ax.legend(frameon=False)
-    ax.set_xlim((-6, 4))
-    ax.grid(alpha=0.25, linestyle=":")
+    ax.grid(axis="y", linestyle=":", linewidth=0.6, alpha=0.5)
+    if xlim is not None:
+        ax.set_xlim(xlim)
     fig.tight_layout()
     return fig
 
-
-if __name__ == '__main__':
-    all_weights = []
-    try:
-        all_weights.append(weights[0].ravel())
-        all_weights.append(weights[2].ravel())
-        all_weights.append(weights[4].ravel())
-    except Exception:
-        pass
-
-    if all_weights:
-        global_min = min(w.min() for w in all_weights)
-        global_max = max(w.max() for w in all_weights)
-    else:
-        global_min, global_max = -1, 1
-    
-    print(f"All weights value range: [{global_min:.4g}, {global_max:.4g}]")
+def pick_weights(which: str):
+    if which == "fc1" and len(weights) >= 2:
+        return weights[0]
+    if which == "fc2" and len(weights) >= 4:
+        return weights[2]
+    if which == "fc3" and len(weights) >= 6:
+        return weights[4]
+    return None
