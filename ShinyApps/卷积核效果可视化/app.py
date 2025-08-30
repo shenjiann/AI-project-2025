@@ -27,7 +27,7 @@ app_ui = ui.page_fluid(
 
     # 图片和标题
     ui.output_image("threedep"),
-    ui.panel_title("二维卷积计算"),
+    ui.panel_title("卷积核效果可视化"),
     ui.layout_columns(
         ui.div(
             ui.navset_card_tab(

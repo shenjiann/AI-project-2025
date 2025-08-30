@@ -1,40 +1,57 @@
+body {
+    font-family: "Times New Roman", "Songti SC"
+}
+
 /* 额外组件样式（你已有） */
 #threedep {
-    margin-bottom: -300px !important;
+    margin-bottom: -310px !important;
 }
 
-#sel_img {
-    margin-bottom: -300px !important;
-}
+/* #sel_img {
+    align-items: center;
+} */
 
 
-
-/* 输出向量圆点样式（原本的 .dot-row 保留多行自动换行） */
+/* 横向点排布：允许换行 */
 .dot-row {
     display: flex;
-    flex-wrap: wrap;               /* 普通行：可换行 */
+    flex-wrap: wrap;
     align-items: center;
+    justify-content: center;   /* 水平居中 */
     gap: var(--gap, 4px);
     padding: var(--pad, 4px);
 }
 
-/* 仅用于“横向滚动的一行点” */
+/* 横向点排布：不换行（横向滚动） */
 .dot-strip {
     display: flex;
-    flex-wrap: nowrap;             /* 不换行，挤不下就横向滚动 */
+    flex-wrap: nowrap;
     align-items: center;
+    justify-content: center;   /* 水平居中 */
     gap: var(--gap, 4px);
     padding: var(--pad, 4px);
-    overflow-x: auto;              /* 开启横向滚动 */
+    overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
-    -webkit-overflow-scrolling: touch; /* 移动端更顺滑 */
+    -webkit-overflow-scrolling: touch;
 }
 
-/* 每个圆点 */
+/* 纵向点排布 */
+.dot-col {
+    display: flex;
+    flex-direction: column;
+    align-items: center;       /* 水平居中 */
+    gap: var(--gap, 4px);
+    padding: var(--pad, 4px);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* 单个圆点 */
 .dot {
     display: inline-block;
     border-radius: 50%;
     box-shadow: 0 0 0 1px rgba(0,0,0,.2) inset, 0 1px 2px rgba(0,0,0,.12);
-    flex: 0 0 auto;                /* 在 .dot-strip 中不被压缩/换行 */
+    flex: 0 0 auto;
 }

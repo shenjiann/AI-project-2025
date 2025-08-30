@@ -4,29 +4,6 @@ import pandas as pd
 from PIL import Image
 import matplotlib.pyplot as plt
 
-# —— 期刊风 rcParams ——
-plt.rcParams.update({
-    "figure.dpi": 300,
-    "savefig.dpi": 300,
-    "axes.edgecolor": "black",
-    "axes.linewidth": 1.0,
-    "axes.grid": True,
-    "grid.linestyle": ":",
-    "grid.linewidth": 0.6,
-    "grid.alpha": 0.5,
-    "axes.grid.axis": "y",        # 只画 y 方向网格
-    "xtick.direction": "in",
-    "ytick.direction": "in",
-    "xtick.major.width": 0.8,
-    "ytick.major.width": 0.8,
-    "xtick.minor.visible": False,
-    "ytick.minor.visible": False,
-    "legend.frameon": False,
-    "font.size": 11,
-})
-
-# 字体：尽量兼容中文与英文字体（你可按机器安装情况调整）
-plt.rcParams["font.family"] = ["Noto Sans CJK SC", "Source Han Sans SC", "DejaVu Sans", "Arial", "Helvetica"]
 
 APP_DIR = Path(__file__).parent
 SAMPLES_DIR = APP_DIR / "www" / "MNIST_samples"
