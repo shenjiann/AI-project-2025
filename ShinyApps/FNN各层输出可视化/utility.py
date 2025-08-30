@@ -2,6 +2,31 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 from PIL import Image
+import matplotlib.pyplot as plt
+
+# —— 期刊风 rcParams ——
+plt.rcParams.update({
+    "figure.dpi": 300,
+    "savefig.dpi": 300,
+    "axes.edgecolor": "black",
+    "axes.linewidth": 1.0,
+    "axes.grid": True,
+    "grid.linestyle": ":",
+    "grid.linewidth": 0.6,
+    "grid.alpha": 0.5,
+    "axes.grid.axis": "y",        # 只画 y 方向网格
+    "xtick.direction": "in",
+    "ytick.direction": "in",
+    "xtick.major.width": 0.8,
+    "ytick.major.width": 0.8,
+    "xtick.minor.visible": False,
+    "ytick.minor.visible": False,
+    "legend.frameon": False,
+    "font.size": 11,
+})
+
+# 字体：尽量兼容中文与英文字体（你可按机器安装情况调整）
+plt.rcParams["font.family"] = ["Noto Sans CJK SC", "Source Han Sans SC", "DejaVu Sans", "Arial", "Helvetica"]
 
 APP_DIR = Path(__file__).parent
 SAMPLES_DIR = APP_DIR / "www" / "MNIST_samples"
@@ -62,18 +87,17 @@ def read_selected_image_to_vec(
     x_vec /= 255.0
     return x_vec
 
-import numpy as np
 
-def vector_to_html_dots(vec, width_px=14, gap_px=4, pad_px=4):
+def vector_to_html_dots(vec, width_px=14, gap_px=4, pad_px=4, scroll=False):
     """
-    将向量渲染为一排黑白圆点，灰度表示数值大小。
-    白=最小值，黑=最大值。
+    将向量渲染为黑白圆点。
+    - scroll=False: 用 .dot-row（可换行）
+    - scroll=True : 用 .dot-strip（单行，支持横向滚动）
     """
     v = np.asarray(vec, dtype=float)
     if v.size == 0 or not np.isfinite(v).any():
         return "<div class='dot-row'>无有效数据</div>"
 
-    # 归一化到 [0,1]
     vmin, vmax = np.nanmin(v), np.nanmax(v)
     if np.isclose(vmin, vmax):
         norm = np.zeros_like(v)
@@ -82,7 +106,7 @@ def vector_to_html_dots(vec, width_px=14, gap_px=4, pad_px=4):
 
     dots = []
     for xi, ni in zip(v, norm):
-        gray = int(255 * (1 - ni))
+        gray = int(255 * (1 - float(ni)))  # 小值白，大值黑
         color = f"rgb({gray},{gray},{gray})"
         title = f"value={xi:.4g}"
         dots.append(
@@ -90,11 +114,42 @@ def vector_to_html_dots(vec, width_px=14, gap_px=4, pad_px=4):
             f"style='background:{color}; width:{width_px}px; height:{width_px}px;'></span>"
         )
 
+    container_cls = "dot-strip" if scroll else "dot-row"
     html = (
-        f"<div class='dot-row' "
+        f"<div class='{container_cls}' "
         f"style='--gap:{gap_px}px; --pad:{pad_px}px; --dot:{width_px}px;'>"
         + "".join(dots) +
         "</div>"
     )
     return html
 
+
+def plot_weight_hist(w, title="Weights Histogram", bins=60):
+    fig, ax = plt.subplots(figsize=(5.6, 3.2), dpi=160)
+    ax.hist(w.ravel(), bins=bins, alpha=0.8, color="steelblue", label=f"W {tuple(w.shape)}")
+    ax.set_title(title)
+    ax.set_xlabel("Weight Value")
+    ax.set_ylabel("Count")
+    ax.legend(frameon=False)
+    ax.set_xlim((-6, 4))
+    ax.grid(alpha=0.25, linestyle=":")
+    fig.tight_layout()
+    return fig
+
+
+if __name__ == '__main__':
+    all_weights = []
+    try:
+        all_weights.append(weights[0].ravel())
+        all_weights.append(weights[2].ravel())
+        all_weights.append(weights[4].ravel())
+    except Exception:
+        pass
+
+    if all_weights:
+        global_min = min(w.min() for w in all_weights)
+        global_max = max(w.max() for w in all_weights)
+    else:
+        global_min, global_max = -1, 1
+    
+    print(f"All weights value range: [{global_min:.4g}, {global_max:.4g}]")
