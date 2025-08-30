@@ -16,7 +16,7 @@ MODELS_DIR = APP_DIR / "models"
 
 # 加载模型
 model = AlexNet(num_classes=10)
-state = torch.load(MODELS_DIR/'AlexNet.pth', map_location="cpu")
+# state = torch.load(MODELS_DIR/'AlexNet.pth', map_location="cpu")
 
 
 def _sha256_tensor(t: torch.Tensor) -> str:
